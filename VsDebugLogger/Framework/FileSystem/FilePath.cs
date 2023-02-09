@@ -1,0 +1,324 @@
+﻿namespace VsDebugLogger.Framework.FileSystem;
+
+using System.Collections.Generic;
+using VsDebugLogger.Framework.Logging;
+using SysThread = System.Threading;
+using Sys = System;
+using SysIo = System.IO;
+using SysText = System.Text;
+using static Statics;
+
+public sealed class FilePath
+{
+	public static FilePath FromAbsolutePath( string full_path )
+	{
+		Assert( SysIo.Path.IsPathRooted( full_path ) );
+		return new FilePath( full_path );
+	}
+
+	public static FilePath FromRelativePath( string path )
+	{
+		Assert( !SysIo.Path.IsPathRooted( path ) );
+		string full_path = SysIo.Path.GetFullPath( path );
+		return FromAbsolutePath( full_path );
+	}
+
+	public static FilePath FromRelativeOrAbsolutePath( string path )
+	{
+		return SysIo.Path.IsPathRooted( path ) ? FromAbsolutePath( path ) : FromRelativePath( path );
+	}
+
+	public static FilePath FromRelativeOrAbsolutePath( string path, DirectoryPath base_path_if_relative )
+	{
+		return SysIo.Path.IsPathRooted( path ) ? FromAbsolutePath( path ) : Of( base_path_if_relative, path );
+	}
+
+	public static FilePath GetTempFileName()
+	{
+		// PEARL: System.IO.Path.GetTempFileName() returns a unique filename which already contains the extension '.tmp', and there is nothing we can do about that.
+		//        We cannot replace the '.tmp' extension with our own nor append our own extension to it, because:
+		//        - there would be no guarantees anymore that the filename is unique.
+		//        - a zero-length file with the returned filename has already been created.
+		// PEARL ON PEARL: The Win32::GetTempFileName() which is used internally to implement this function DOES support passing the
+		//        desired extension as a parameter; however, System.IO.Path.GetTempFileName() passes the hard-coded extension ".tmp" to it.
+		string temp_file_name = SysIo.Path.GetTempFileName();
+		return FromAbsolutePath( temp_file_name );
+	}
+
+	public static FilePath Of( DirectoryPath directory_path, string file_name )
+	{
+		//Assert( fileName.IndexOfAny( SysIo.Path.GetInvalidFileNameChars() ) == -1 );
+		string path = SysIo.Path.Combine( directory_path.Path, file_name );
+		return new FilePath( path );
+	}
+
+	public readonly string Path;
+
+	public FilePath( string full_path )
+	{
+		Assert( SysIo.Path.IsPathRooted( full_path ) );
+		//Assert( path == SysIo.Path.Combine( NotNull( SysIo.Path.GetDirectoryName( path ) ), SysIo.Path.GetFileName( path ) ) ); Does not work with UNC paths. The following line, however, does.
+		Assert( SysIo.Path.GetFullPath( full_path ) == full_path );
+		Path = full_path;
+	}
+
+	public string Extension => SysIo.Path.GetExtension( Path );
+	public FilePath WithReplacedExtension( string extension ) => FromAbsolutePath( SysIo.Path.ChangeExtension( Path, extension ) );
+	public DirectoryPath GetDirectory() => new DirectoryPath( SysIo.Path.GetDirectoryName( Path )! );
+	public string GetFileNameAndExtension() => NotNull( SysIo.Path.GetFileName( Path )! );
+	public string GetFileNameWithoutExtension() => NotNull( SysIo.Path.GetFileNameWithoutExtension( Path ) );
+	public DirectoryPath Directory => new DirectoryPath( NotNull( SysIo.Directory.GetParent( Path )! ).FullName );
+	public SysIo.FileInfo GetFileInfo() => new SysIo.FileInfo( Path );
+	public bool StartsWith( DirectoryPath other ) => Path.StartsWith( other.Path, Sys.StringComparison.OrdinalIgnoreCase );
+	public bool EndsWith( string suffix ) => Path.EndsWith( suffix, Sys.StringComparison.OrdinalIgnoreCase );
+
+	[Sys.Obsolete]
+	public override bool Equals( object? other ) => other is FilePath kin && Equals( kin );
+
+	public bool Equals( FilePath other ) => Path.Equals( other.Path, Sys.StringComparison.OrdinalIgnoreCase );
+	public override int GetHashCode() => Path.GetHashCode();
+	public override string ToString() => Path;
+
+	public bool Exists()
+	{
+		if( !Directory.Exists() )
+			return false;
+		var file_system_info = new SysIo.FileInfo( Path );
+		return file_system_info.Exists;
+	}
+
+	public bool ExistsAndIsWritable()
+	{
+		try
+		{
+			using( new SysIo.FileStream( Path, SysIo.FileMode.Open, SysIo.FileAccess.ReadWrite, SysIo.FileShare.Read ) )
+			{ }
+		}
+		catch( SysIo.FileNotFoundException )
+		{
+			return false;
+		}
+		return true;
+	}
+
+	public string ReadAllText( SysText.Encoding? encoding = null )
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		return SysIo.File.ReadAllText( Path, encoding ?? SysText.Encoding.UTF8 );
+	}
+
+	public byte[] ReadAllBytes()
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		return SysIo.File.ReadAllBytes( Path );
+	}
+
+	public void WriteAllText( string text, SysText.Encoding? encoding = null )
+	{
+		if( !GetDirectory().Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.DirectoryNotFoundException( GetDirectory().Path );
+		SysIo.File.WriteAllText( Path, text, encoding ?? SysText.Encoding.UTF8 );
+	}
+
+	public void MoveTo( FilePath new_path_name ) //This is essentially 'Rename'
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.Move( Path, new_path_name.Path );
+	}
+
+	public void CopyTo( FilePath other )
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.Copy( Path, other.Path, true );
+	}
+
+	public IEnumerable<string> ReadLines()
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		return SysIo.File.ReadLines( Path );
+	}
+
+	public void WriteAllBytes( byte[] bytes )
+	{
+		if( !GetDirectory().Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.WriteAllBytes( Path, bytes );
+	}
+
+	public Sys.DateTime GetCreationTime()
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		return SysIo.File.GetCreationTimeUtc( Path );
+	}
+
+	public void SetCreationTime( Sys.DateTime utc )
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.SetCreationTimeUtc( Path, utc );
+	}
+
+	public void SetLastWriteTime( Sys.DateTime utc )
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.SetLastWriteTimeUtc( Path, utc );
+	}
+
+	public void Truncate()
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( Path );
+		SysIo.File.WriteAllText( Path, "" );
+	}
+
+	private void delete()
+	{
+		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			throw new SysIo.FileNotFoundException( "File not found", Path );
+		try
+		{
+			SysIo.File.Delete( Path );
+		}
+		catch( Sys.Exception exception )
+		{
+			throw mapException( exception, "Delete" );
+		}
+	}
+
+	public void Delete( int retry_count = 10 )
+	{
+		for( int retry = 0;; retry++ )
+		{
+			try
+			{
+				delete();
+				return;
+			}
+			catch( SharingViolationException )
+			{
+				if( retry < retry_count )
+				{
+					Log.Info( $"Retry {retry + 1} of {retry_count} while {Path} is in use..." );
+					SysThread.Thread.Sleep( 100 );
+					continue;
+				}
+				throw;
+			}
+		}
+	}
+
+	public void DeleteIfExists()
+	{
+		if( Exists() )
+			Delete();
+	}
+
+	public void CreateParentDirectoryIfNotExists()
+	{
+		DirectoryPath parent = Directory;
+		if( parent.Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+			return;
+		parent.CreateDirectory();
+	}
+
+	public DirectoryPath WithoutRelativePath( string relative_path )
+	{
+		Assert( Path.EndsWith( relative_path, Sys.StringComparison.Ordinal ) );
+		return DirectoryPath.FromAbsolutePath( Path.Substring( 0, Path.Length - relative_path.Length ) );
+	}
+
+	public SysIo.Stream OpenBinary( SysIo.FileAccess access = SysIo.FileAccess.Read, SysIo.FileShare? share = null )
+	{
+		share ??= access switch
+		{
+			SysIo.FileAccess.Read => SysIo.FileShare.Read,
+			SysIo.FileAccess.Write => SysIo.FileShare.None,
+			SysIo.FileAccess.ReadWrite => SysIo.FileShare.None,
+			_ => throw new Sys.ArgumentOutOfRangeException( nameof(access), access, null )
+		};
+		try
+		{
+			return new SysIo.FileStream( Path, SysIo.FileMode.Open, access, share.Value );
+		}
+		catch( Sys.Exception exception )
+		{
+			throw mapException( exception, nameof(OpenBinary) );
+		}
+	}
+
+	public SysIo.Stream CreateBinary( SysIo.FileAccess access = SysIo.FileAccess.Write, SysIo.FileShare share = SysIo.FileShare.None )
+	{
+		Assert( access == SysIo.FileAccess.Write || access == SysIo.FileAccess.ReadWrite );
+		try
+		{
+			return new SysIo.FileStream( Path, SysIo.FileMode.Create, access, share );
+		}
+		catch( Sys.Exception exception )
+		{
+			throw mapException( exception, nameof(CreateBinary) );
+		}
+	}
+
+	public SysIo.TextReader OpenText( SysText.Encoding? encoding = null )
+	{
+		SysIo.Stream file_stream = OpenBinary();
+		return new SysIo.StreamReader( file_stream, encoding ?? SysText.Encoding.UTF8 );
+	}
+
+	private Sys.Exception mapException( Sys.Exception exception, string operation_name )
+	{
+		switch( exception )
+		{
+			case Sys.UnauthorizedAccessException _: // The caller does not have the required permission.-or- The file is an executable file that is in use.-or- is a directory.-or- it is a read-only file.
+			case SysIo.DirectoryNotFoundException _: // The specified path is invalid (for example, it is on an unmapped drive)
+			case SysIo.DriveNotFoundException _:
+			case SysIo.EndOfStreamException _:
+			case SysIo.FileLoadException _:
+			case SysIo.FileNotFoundException _:
+			case SysIo.PathTooLongException _:
+			case SysIo.InternalBufferOverflowException _:
+			case SysIo.InvalidDataException _:
+				break;
+			case SysIo.IOException io_exception:
+				// See https://www.hresult.info -- for example, https://www.hresult.info/FACILITY_WIN32/0x80070020
+				switch( unchecked((uint)io_exception.HResult) )
+				{
+					// PEARL: both HResult 0x80000009 and HResult 0x80070005 map to ACCESS_DENIED.
+					case 0x80000009: return new AccessDeniedException( io_exception, this, operation_name );
+					case 0x80070005: //Facility 0x007 = WIN32, Code 0x0005 = ACCESS_DENIED
+						return new AccessDeniedException( io_exception, this, operation_name );
+					case 0x80070020: //Facility 0x007 = WIN32, Code 0x0020 = SHARING_VIOLATION
+						return new SharingViolationException( io_exception, this, operation_name );
+					case 0x80070079: //The semaphore timeout period has expired
+						break;
+					case 0x800700e8: //The pipe is broken
+						break;
+					case 0x800700E7: //"All pipe instances are busy"
+						break;
+					case 0x80131620: //"Error during managed I/O". Has been observed to have message "Pipe is broken" but without an inner exception.
+						break;
+				}
+				break;
+		}
+		return new FilePathException( exception, this, operation_name );
+	}
+
+	public SysIo.TextWriter CreateText( bool create_directory_if_not_exist = false )
+	{
+		if( create_directory_if_not_exist )
+			Directory.CreateIfNotExist();
+		return SysIo.File.CreateText( Path );
+	}
+
+	public void RenameTo( FilePath target_file_path )
+	{
+		SysIo.File.Move( Path, target_file_path.Path );
+	}
+}

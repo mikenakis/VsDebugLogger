@@ -1,0 +1,9 @@
+# The user settings directory that Visual Studio likes to create under the solution directory.
+.vs
+
+# All the bin and obj directories in all projects
+**/bin/**
+**/obj/**
+
+# ReSharper per-user settings. (We version the .DotSettings file, but not the .DotSettings.user file)
+*.sln.DotSettings.user
