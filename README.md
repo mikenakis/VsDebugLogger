@@ -39,8 +39,23 @@ Published under the MIT license. Do whatever you want with it.
 There are many potential areas of improvement:
 
 - Use a FileSystemWatcher instead of polling (I will be doing this soon)
-- Support launching of VsDebugLogger on demand
+- Make VsDebugLogger more available
+  - Support launching of VsDebugLogger on demand
     - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
+  - Turn it into a service?
+    - See Stack Overflow - "Using a FileSystemWatcher with Windows Service" - https://stackoverflow.com/q/30830565/773113 
+	- Actually, no, it should not be turned into a service, because services are useful for doing things while nobody is logged on, while this application is only useful to a logged-on user.
+  - Once launched, make it minimize-to-tray
+    - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
+	- See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
+	- See Stack Overflow: "C# trayicon using wpf" https://stackoverflow.com/q/12428006/773113
+	- See Stack Overflow: "WPF applications tray icon [closed]" https://stackoverflow.com/q/41704392/773113
+	- See Stack Overflow: "Determining location of tray icon" https://stackoverflow.com/q/4366449/773113
+	- See Stack Overflow: "Can I use NotifyIcon in WPF?" https://stackoverflow.com/q/17674761/773113
+	- See Code Project: "WPF NotifyIcon" https://www.codeproject.com/Articles/36468/WPF-NotifyIcon-2
+	- See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
+	- See possemeeg.wordpress.com: "Minimize to tray icon in WPF" https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
+	- See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
 - Support multiple applications
     - Maintain a socket (or named-pipe) connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
 	- Then of course an interesting possibility is to transmit the log text via that connection so it is VsDebugLogger that also does the appending to the file. (And if VsDebugLogger is unavailable, then the application does the logging by itself.)
