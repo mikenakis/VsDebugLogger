@@ -27,9 +27,6 @@ internal class TheVsDebugLogger
 	// ReSharper restore PrivateFieldCanBeConvertedToLocalVariable
 	// ReSharper restore FieldCanBeMadeReadOnly.Local
 
-	//TODO: select specific instance of visual studio
-	//See https://stackoverflow.com/questions/14205933/how-do-i-get-the-dte-for-running-visual-studio-instance
-
 	public TheVsDebugLogger( string[] program_arguments, Procedure<string> logger )
 	{
 		this.logger = logger;

@@ -40,6 +40,8 @@ namespace VsDebugLogger.Framework
 
 		public abstract bool IsAliveAssertion();
 
+		public abstract override string ToString();
+
 		private sealed class ProductionLifeGuard : LifeGuard
 		{
 			public static readonly ProductionLifeGuard Instance = new();
@@ -51,6 +53,8 @@ namespace VsDebugLogger.Framework
 			{ } //nothing to do
 
 			public override bool IsAliveAssertion() => throw new Sys.Exception(); //never invoke on a release build
+
+			public override string ToString() => "";
 		}
 
 		private abstract class DebugLifeGuard : LifeGuard

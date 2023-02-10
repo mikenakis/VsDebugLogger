@@ -36,13 +36,28 @@ Published under the MIT license. Do whatever you want with it.
 
 # Contributions
 
-There are many potential areas of improvement:
+There are a few potential areas of improvement where I could use some help:
 
-- Use a FileSystemWatcher instead of polling (I will be doing this soon)
+- Create an installer or NuGet package (Never done this before, help would be welcome)
+- Convert the standalone application into a Visual Studio extension (Never done this before, help would be welcome)
+
+If you do decide to contribute, please contact me first to arrange the specifics.
+
+# TO DO list
+
+- ~~Use a FileSystemWatcher instead of polling~~
+    - Nope, this won't work. The use of FileSystemWatcher has a couple of severe disadvantages:
+    	1. It won't work on network drives.
+    		- Not really a problem in my case.
+		1. It won't notify about changes in a file unless a handle to the file is opened or closed.
+    		- Very much a problem in my case, because an application keeps a log file open while appending to it; log files are very rarely closed.
+    		- See StackOverflow: "FileSystemWatcher changed event (for "LastWrite") is unreliable" https://stackoverflow.com/q/9563037/773113
+- ~~Use FileInfo.Length instead of opening the file and invoking FileStream.Length~~
+    - This did not work at first, probably for the same reasons that FileSystemWatcher does not work. (The Windows File System refrains from updating this information unless a file handle is opened or closed.) However, I was able to make it work by performing a FileInfo.Refresh() before querying the length. It remains to be seen whether these two operations are faster than a single FileStream.Length.
 - Make VsDebugLogger more available
   - Support launching of VsDebugLogger on demand
     - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
-  - Turn it into a service?
+  - ~~Turn it into a service~~
     - See Stack Overflow - "Using a FileSystemWatcher with Windows Service" - https://stackoverflow.com/q/30830565/773113 
 	- Actually, no, it should not be turned into a service, because services are useful for doing things while nobody is logged on, while this application is only useful to a logged-on user.
   - Once launched, make it minimize-to-tray
@@ -59,9 +74,3 @@ There are many potential areas of improvement:
 - Support multiple applications
     - Maintain a socket (or named-pipe) connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
 	- Then of course an interesting possibility is to transmit the log text via that connection so it is VsDebugLogger that also does the appending to the file. (And if VsDebugLogger is unavailable, then the application does the logging by itself.)
-- Create an installer or NuGet package (Never done this before, help would be welcome)
-- Convert the standalone application into a Visual Studio extension (Never done this before, help would be welcome)
-
-If you do decide to contribute, please contact me first to arrange the specifics.
-
-

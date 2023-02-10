@@ -69,7 +69,7 @@ internal class ResilientInputStream
 		{
 			try
 			{
-				file_stream = new SysIo.FileStream( file_path.Path, SysIo.FileMode.Open, SysIo.FileAccess.Read, SysIo.FileShare.ReadWrite | SysIo.FileShare.Delete );
+				file_stream = new SysIo.FileStream( file_path.FullName, SysIo.FileMode.Open, SysIo.FileAccess.Read, SysIo.FileShare.ReadWrite | SysIo.FileShare.Delete );
 			}
 			catch( Sys.Exception exception )
 			{
@@ -83,26 +83,47 @@ internal class ResilientInputStream
 
 	private static bool try_get_file_length( FilePath file_path, ref SysIo.FileStream? file_stream, ref long offset, out long length, Procedure<string> logger )
 	{
-		if( !try_open_file( file_path, ref file_stream, ref offset, logger ) )
+		if( True )
 		{
-			length = 0;
-			return false;
+			try
+			{
+				// PEARL: FileSystemInfo.Length will not return the updated file size unless FileSystemInfo.Refresh() is invoked first. It remains to be seen
+				// whether these two operations are faster than just invoking FileStream.Length.
+				file_path.Refresh();
+				length = file_path.Length;
+			}
+			catch( Sys.Exception exception )
+			{
+				logger.Invoke( $"Failed to query length of file '{file_path}': {exception.GetType()}: {exception.Message}" );
+				offset = 0;
+				length = 0;
+				return false;
+			}
+			return true;
 		}
-		Assert( file_stream != null );
-		try
+		else
 		{
-			length = file_stream.Length;
+			if( !try_open_file( file_path, ref file_stream, ref offset, logger ) )
+			{
+				length = 0;
+				return false;
+			}
+			Assert( file_stream != null );
+			try
+			{
+				length = file_stream.Length;
+			}
+			catch( Sys.Exception exception )
+			{
+				logger.Invoke( $"Failed to query length of file '{file_path}': {exception.GetType()}: {exception.Message}" );
+				file_stream.Close();
+				file_stream = null;
+				offset = 0;
+				length = 0;
+				return false;
+			}
+			return true;
 		}
-		catch( Sys.Exception exception )
-		{
-			logger.Invoke( $"Failed to query length of file '{file_path}': {exception.GetType()}: {exception.Message}" );
-			file_stream.Close();
-			file_stream = null;
-			offset = 0;
-			length = 0;
-			return false;
-		}
-		return true;
 	}
 
 	private static bool try_seek( FilePath file_path, ref SysIo.FileStream? file_stream, ref long offset, Procedure<string> logger )

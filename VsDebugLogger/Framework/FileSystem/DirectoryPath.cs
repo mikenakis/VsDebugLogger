@@ -9,7 +9,7 @@ using Sys = System;
 using SysIo = System.IO;
 using static Statics;
 
-public sealed class DirectoryPath
+public sealed class DirectoryPath : FileSystemPath
 {
 	public static DirectoryPath GetTempPath() => FromAbsolutePath( SysIo.Path.GetTempPath() );
 
@@ -39,15 +39,16 @@ public sealed class DirectoryPath
 		return result;
 	}
 
-	public readonly string Path;
+	public string Path => FullName;
+	public SysIo.DirectoryInfo DirectoryInfo { get; }
+	protected override SysIo.FileSystemInfo FileSystemInfo => DirectoryInfo;
 
-	//[NewtonsoftJson.JsonConstructor]
-	public DirectoryPath( string path )
+	public DirectoryPath( string full_path )
 	{
-		Assert( SysIo.Path.IsPathRooted( path ) );
-		//Assert( path == SysIo.Path.Combine( NotNull( SysIo.Path.GetDirectoryName( path ) ), SysIo.Path.GetFileName( path ) ) ); Does not work with UNC paths. The following line, however, does.
-		Assert( SysIo.Path.GetFullPath( path ) == path );
-		Path = strip_trailing_path_separator( path );
+		Assert( SysIo.Path.IsPathRooted( full_path ) );
+		//Assert( full_path == SysIo.Path.Combine( NotNull( SysIo.Path.GetDirectoryName( full_path ) ), SysIo.Path.GetFileName( full_path ) ) ); Does not work with UNC paths. The following line, however, does.
+		Assert( SysIo.Path.GetFullPath( full_path ) == full_path );
+		DirectoryInfo = new SysIo.DirectoryInfo( strip_trailing_path_separator( full_path ) );
 	}
 
 	private static string strip_trailing_path_separator( string path )
@@ -61,11 +62,8 @@ public sealed class DirectoryPath
 	public DirectoryPath GetParent() => new DirectoryPath( NotNull( SysIo.Directory.GetParent( Path )! ).FullName );
 	public bool StartsWith( DirectoryPath other ) => Path.StartsWith( other.Path, Sys.StringComparison.OrdinalIgnoreCase );
 	public string GetRelativePath( DirectoryPath full_path ) => get_relative_path( Path, full_path.Path );
-	public string GetRelativePath( FilePath full_path ) => get_relative_path( Path, full_path.Path );
-
-	[Sys.Obsolete]
-	public override bool Equals( object? other ) => other is DirectoryPath kin && Equals( kin );
-
+	public string GetRelativePath( FilePath full_path ) => get_relative_path( Path, full_path.FullName );
+	[Sys.Obsolete] public override bool Equals( object? other ) => other is DirectoryPath kin && Equals( kin );
 	public bool Equals( DirectoryPath other ) => Path.Equals( other.Path, Sys.StringComparison.OrdinalIgnoreCase );
 	public override int GetHashCode() => Path.GetHashCode();
 	public override string ToString() => Path;
@@ -78,15 +76,9 @@ public sealed class DirectoryPath
 
 	public DirectoryPath TemporaryUniqueSubDirectory() => SubDirectory( SysIo.Path.GetRandomFileName() );
 
-	public bool IsNetworkPath()
-	{
-		var file_system_info = new SysIo.DirectoryInfo( Path );
-		return is_network_path( file_system_info );
-	}
-
 	public void CreateIfNotExist()
 	{
-		if( Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			return;
 		// if( IsNetworkPath() ) I am not sure why I used to have this check here.
 		// 	throw new Sys.UnauthorizedAccessException();
@@ -95,20 +87,14 @@ public sealed class DirectoryPath
 
 	public void MoveTo( DirectoryPath new_path_name )
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		SysIo.Directory.Move( Path, new_path_name.Path );
 	}
 
-	public bool Exists()
-	{
-		var file_system_info = new SysIo.DirectoryInfo( Path );
-		return file_system_info_exists( file_system_info );
-	}
-
 	public IEnumerable<SysIo.FileInfo> GetFileInfos( string pattern )
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		return new SysIo.DirectoryInfo( Path ).GetFiles( pattern );
 	}
@@ -126,7 +112,7 @@ public sealed class DirectoryPath
 		//       and instead it will enumerate the files at the path contained within the pattern.
 		//       To avoid this, we assert that the "pattern" parameter does not start with a path.
 		Assert( !SysIo.Path.IsPathRooted( pattern ) );
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		foreach( string s in SysIo.Directory.GetFiles( Path, pattern ) )
 			yield return new FilePath( s );
@@ -134,21 +120,13 @@ public sealed class DirectoryPath
 
 	public IEnumerable<DirectoryPath> EnumerateDirectories()
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		foreach( string s in SysIo.Directory.GetDirectories( Path ) )
 			yield return new DirectoryPath( s );
 	}
 
-	public void DeleteIfExists()
-	{
-		// if( IsNetworkPath() )
-		// 	throw new Sys.AccessViolationException( Path );
-		if( SysIo.Directory.Exists( Path ) )
-			Delete();
-	}
-
-	public void Delete()
+	public override void Delete()
 	{
 		try
 		{
@@ -162,7 +140,7 @@ public sealed class DirectoryPath
 
 	public IEnumerable<FilePath> GetFiles( string pattern, bool recurse ) //
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		return SysIo.Directory.GetFiles( Path, pattern, recurse ? SysIo.SearchOption.AllDirectories : SysIo.SearchOption.TopDirectoryOnly ).Select( FilePath.FromAbsolutePath );
 	}
@@ -196,7 +174,7 @@ public sealed class DirectoryPath
 
 	public FilePath GetSingleMatchingFile( string pattern )
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		IReadOnlyList<SysIo.FileInfo> matching_entries = get_matching_files( pattern ).ToImmutableList();
 		if( matching_entries.Count == 0 )
@@ -206,18 +184,12 @@ public sealed class DirectoryPath
 
 	public DirectoryPath GetSingleMatchingSubdirectory( string pattern )
 	{
-		if( !Exists() ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
+		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.DirectoryNotFoundException( Path );
 		IReadOnlyList<SysIo.DirectoryInfo> matching_entries = get_matching_directories( pattern ).ToImmutableList();
 		if( matching_entries.Count == 0 )
 			throw new Sys.Exception( $"Path not found: {Path}/{pattern}" );
 		return new DirectoryPath( matching_entries.Single().FullName );
-	}
-
-	public DirectoryPath WithoutRelativePath( string relative_path )
-	{
-		Assert( Path.EndsWith( relative_path, Sys.StringComparison.Ordinal ) );
-		return FromAbsolutePath( Path.Substring( 0, Path.Length - relative_path.Length ) );
 	}
 
 	public void CopyTo( DirectoryPath target, bool if_newer )
@@ -243,42 +215,5 @@ public sealed class DirectoryPath
 				continue;
 			source_file_info.CopyTo( target_file_info.FullName, true );
 		}
-	}
-
-	public static DirectoryPath RootOf( DirectoryPath directory_path )
-	{
-		return FromAbsolutePath( SysIo.Directory.GetDirectoryRoot( directory_path.Path ) );
-	}
-
-	private static bool is_network_path( SysIo.FileSystemInfo file_system_info )
-	{
-		string path = file_system_info.FullName;
-		if( path.StartsWith( @"//", Sys.StringComparison.Ordinal ) || path.StartsWith( @"\\", Sys.StringComparison.Ordinal ) )
-			return true; // is a UNC path
-		string root_path = NotNull( SysIo.Path.GetPathRoot( path ) ); // get drive letter or \\host\share (will not return null because `path` is not null)
-		SysIo.DriveInfo drive_info = new SysIo.DriveInfo( root_path ); // get info about the drive
-		return drive_info.DriveType == SysIo.DriveType.Network; // return true if a network drive
-	}
-
-	// PEARL: if you attempt to access a non-existent network path, Windows will hit you with an insanely long timeout before it reports an error.
-	//        I am not sure how long this timeout is, but it is certainly far longer than my patience.
-	//        To remedy this, each time we access a file or directory we first invoke this method to check whether it exists.
-	//        This method detects whether the path is a network path, and if so, it checks for its presence using a reasonably short timeout.
-	//        See https://stackoverflow.com/a/52661569/773113
-	private static bool file_system_info_exists( SysIo.FileSystemInfo file_system_info )
-	{
-		if( is_network_path( file_system_info ) )
-		{
-			var task = new Task<bool>( () => file_system_info.Exists );
-			task.Start();
-			Sys.TimeSpan timeout = Sys.TimeSpan.FromSeconds( 2 );
-			if( !task.Wait( timeout ) )
-			{
-				Log.Error( $"Waiting for network path {file_system_info} timed out after {timeout.TotalSeconds} seconds" );
-				return false; //the operation timed out, so for all practical purposes, the file or directory does not exist.
-			}
-			return task.Result;
-		}
-		return file_system_info.Exists;
 	}
 }
