@@ -59,7 +59,7 @@ public static class Statics
 		if( !FailureTesting.Value )
 		{
 			Log.Error( $"Assertion failed{(message == "" ? "" : ": " + message)}", source_file_name, source_line_number );
-			if( Breakpoint0() )
+			if( Breakpoint() )
 				return;
 		}
 		Sys.Exception? cause = null;
@@ -100,7 +100,7 @@ public static class Statics
 
 	/// <summary>If a debugger is attached, hits a breakpoint and returns <c>true</c>; otherwise, returns <c>false</c></summary>
 	[SysDiag.DebuggerHidden]
-	public static bool Breakpoint0()
+	public static bool Breakpoint()
 	{
 		if( SysDiag.Debugger.IsAttached )
 		{

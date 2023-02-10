@@ -8,6 +8,7 @@ using SysDiag = System.Diagnostics;
 using SysText = System.Text;
 using SysReflect = System.Reflection;
 using static Statics;
+using VsDebugLogger.Framework;
 
 public static class Log
 {
@@ -114,8 +115,8 @@ public static class Log
 
 	private static string fix_source_file_name( string source_file_name )
 	{
-		// if( True ) //XXX FIXME TODO the following code has been disabled because Visual Studio 17.4.4 fucks up. See https://stackoverflow.com/q/75224235/773113
-		// 	return source_file_name;
+		if( True ) //XXX FIXME TODO the following code has been disabled because Visual Studio 17.4.4 fucks up. See https://stackoverflow.com/q/75224235/773113
+			return source_file_name;
 		string solution_source_path = SolutionSourcePath.Value;
 		if( !source_file_name.StartsWith( solution_source_path, Sys.StringComparison.Ordinal ) )
 			return source_file_name;

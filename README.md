@@ -8,15 +8,15 @@ I am in favor of minimal logging; however, sometimes it happens that there is a 
 
 When I compare various approaches to logging on my machine, I observe the following:
 
-- Emitting 1000 lines one-by-one via "System.Diagnostics.Debug.WriteLine()" takes a total of 1524 milliseconds. That is an absolutely terrifying 1.5 millisecond per line.
+- Emitting 1000 lines one-by-one via **System.Diagnostics.Debug.WriteLine()** takes a total of 1524 milliseconds. That is an absolutely terrifying 1.5 millisecond per line.
 
-- Emitting 1000 lines one-by-one via a "System.IO.StreamWriter" into a "System.IO.FileStream" and invoking "Flush()" after every single line takes a total of only 4.4 milliseconds. That is 4.4 microseconds per line, i.e. 350 times faster.
+- Emitting 1000 lines one-by-one via a **System.IO.StreamWriter** into a **System.IO.FileStream** and invoking **Flush()** after each line takes a total of only 4.4 milliseconds. That is 4.4 microseconds per line, i.e. an astounding 350 times faster.
 
 I do not care what are the technical or (quite likely) managerial excuses behind this situation, but to me it clearly means that some folks at Microsoft are incompetent dimwits who should be milking goats instead of trying to develop world-class software.
 
 # What is the solution
 
-VsDebugLogger aims to fix this problem. The idea is that we do all of our logging to a text file, (flushing each line to ensure that no line is lost if our application freezes,) and we have an external process running (it could also be a Visual Studio plugin) which keeps reading text as it is being appended to the file and emits that text to the debug output window of Visual Studio. This way, our application is only affected by the minimal performance overhead of writing to a log file, while Visual Studio can take all the time it wants to render and scroll its output window on its own threads.
+VsDebugLogger fixes this problem. The idea is that we do all of our logging into a text file, (flushing each line to ensure that no line is lost if our application freezes,) and we have an external process running (it could also be a Visual Studio plugin) which keeps reading text as it is being appended to the file and emits that text to the debug output window of Visual Studio. This way, our application is only affected by the minimal performance overhead of writing to a log file, while Visual Studio can take all the time it wants to render and scroll its output window on its own threads.
 
 # How to use VsDebugLogger
 
@@ -39,6 +39,11 @@ Published under the MIT license. Do whatever you want with it.
 There are many potential areas of improvement:
 
 - Use a FileSystemWatcher instead of polling (I will be doing this soon)
+- Support launching of VsDebugLogger on demand
+    - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
+- Support multiple applications
+    - Maintain a socket (or named-pipe) connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
+	- Then of course an interesting possibility is to transmit the log text via that connection so it is VsDebugLogger that also does the appending to the file. (And if VsDebugLogger is unavailable, then the application does the logging by itself.)
 - Create an installer or NuGet package (Never done this before, help would be welcome)
 - Convert the standalone application into a Visual Studio extension (Never done this before, help would be welcome)
 

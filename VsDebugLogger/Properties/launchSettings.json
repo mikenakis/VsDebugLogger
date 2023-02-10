@@ -2,7 +2,7 @@
   "profiles": {
     "VsDebugLogger": {
       "commandName": "Project",
-      "commandLineArgs": "file=c:\\temp\\sample_text_file.txt solution=MyVisualStudioSolution interval=0.1"
+      "commandLineArgs": "file=C:\\Users\\MBV\\AppData\\Local\\MonsterWpf\\MonsterWpf.log solution=MyVisualStudioSolution interval=0.1"
     }
   }
 }
