@@ -63,6 +63,7 @@ There are a few potential areas of improvement where I could use some help:
 
 - Create an installer or NuGet package (Never done this before, help would be welcome)
 - Convert the standalone application into a Visual Studio extension (Never done this before, help would be welcome)
+- Give some love to the application icon. (It could use some improvement from an actual artist rather than me I am just a programmer.)
 
 If you do decide to contribute, please contact me first to arrange the specifics.
 

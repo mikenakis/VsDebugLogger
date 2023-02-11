@@ -11,6 +11,7 @@
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 		<NoWarn>1701;1702</NoWarn>
 		<NoWarn>CS0809</NoWarn>
+		<ApplicationIcon>VsDebugLogger.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -19,6 +20,10 @@
 
 	<ItemGroup>
 		<Compile Remove="GlobalExtensions.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Remove="VsDebugLogger.ico" />
 	</ItemGroup>
 
 	<!-- <ItemGroup> -->
@@ -60,6 +65,14 @@
 
 	<ItemGroup>
 		<Compile Include="..\Framework\_GlobalUsings.cs" Link="_GlobalUsings.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="VsDebugLogger.ico" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="VsDebugLogger.ico" />
 	</ItemGroup>
 
 </Project>
