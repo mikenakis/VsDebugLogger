@@ -1,4 +1,4 @@
-﻿namespace VsDebugLogger.Framework.FileSystem;
+﻿namespace Framework.FileSystem;
 
 using System.IO;
 

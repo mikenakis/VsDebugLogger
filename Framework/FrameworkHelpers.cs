@@ -1,10 +1,11 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
 using System.Linq;
-using Sys = System;
-using SysText = System.Text;
-using SysGlob = System.Globalization;
+using Sys = Sys;
+using SysText = SysText;
+using SysGlob = SysGlob;
 using static Statics;
+using Framework.Extensions;
 
 public static class FrameworkHelpers
 {
@@ -196,5 +197,22 @@ public static class FrameworkHelpers
 			Assert( index_of_tick == type_name.IndexOf( '`' ) );
 			return type_name.Substring( 0, index_of_tick );
 		}
+	}
+
+	public static IEnumerable<string> BuildMediumExceptionMessage( string prefix, Sys.Exception exception )
+	{
+		List<string> lines = new List<string>();
+		for( ;; )
+		{
+			lines.Add( $"{prefix}{exception.GetType()} : {exception.Message}" );
+			if( exception.InnerException != null )
+			{
+				prefix = "Caused by ";
+				exception = exception.InnerException;
+				continue;
+			}
+			break;
+		}
+		return lines;
 	}
 }

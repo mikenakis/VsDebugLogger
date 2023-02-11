@@ -1,12 +1,9 @@
-﻿namespace VsDebugLogger;
+﻿namespace Framework;
 
-using VsDebugLogger.Framework;
-using VsDebugLogger.Framework.Logging;
-using SysCodeAnalysis = System.Diagnostics.CodeAnalysis;
-using Sys = System;
-using SysDiag = System.Diagnostics;
-using SysCompiler = System.Runtime.CompilerServices;
-using SysThread = System.Threading;
+using Sys = Sys;
+using SysDiag = SysDiag;
+using SysCompiler = SysCompiler;
+using SysThread = SysThread;
 
 public static class Statics
 {
@@ -126,11 +123,11 @@ public static class Statics
 
 	///<summary>Compares two `double` values.</summary>
 	//TODO: perhaps replace with something more sophisticated, like this: https://stackoverflow.com/a/3875619/773113
-	public static bool DoubleEquals( double a, double b, double? maybe_tolerance )
+	public static bool DoubleEquals( double a, double b, double? maybe_tolerance = null )
 	{
 		if( double.IsNaN( a ) && double.IsNaN( b ) )
 			return true;
-		double difference = Sys.Math.Abs( a - b );
+		double difference = Math.Abs( a - b );
 		double tolerance = maybe_tolerance ?? Epsilon;
 		return difference < tolerance;
 	}
@@ -149,7 +146,7 @@ public static class Statics
 	{
 		if( float.IsNaN( a ) && float.IsNaN( b ) )
 			return true;
-		float difference = Sys.Math.Abs( a - b );
+		float difference = Math.Abs( a - b );
 		float tolerance = maybe_tolerance ?? FEpsilon;
 		return difference < tolerance;
 	}

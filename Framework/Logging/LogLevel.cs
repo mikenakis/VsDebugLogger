@@ -1,4 +1,4 @@
-﻿namespace VsDebugLogger.Framework.Logging;
+﻿namespace Framework.Logging;
 
 public enum LogLevel
 {

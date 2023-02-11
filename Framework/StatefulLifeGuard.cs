@@ -1,8 +1,8 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
-using Sys = System;
+using Sys = Sys;
 using SysComp = System.Runtime.CompilerServices;
-using SysDiag = System.Diagnostics;
+using SysDiag = SysDiag;
 using static Statics;
 
 public class StatefulLifeGuard : Sys.IDisposable

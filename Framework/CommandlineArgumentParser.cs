@@ -1,20 +1,25 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
 using System.Collections.Generic;
 using System.Linq;
-using VsDebugLogger.Framework.FileSystem;
-using Sys = System;
+using Framework.Extensions;
+using Framework.FileSystem;
+using Sys = Sys;
 
 public class CommandlineArgumentParser
 {
 	private readonly List<string> arguments;
 	public bool PauseOption { get; }
+	public bool NonEmpty => arguments.Count != 0;
+	public string AllRemainingArguments => arguments.MakeString( " " );
 
 	public CommandlineArgumentParser( string[] arguments_array )
-	{
-		//Log.Info( $"Current directory: {DirectoryPath.FromRelativePath( "." )}" );
-		arguments = new List<string>( arguments_array );
+			: this( new List<string>( arguments_array ) )
+	{ }
 
+	public CommandlineArgumentParser( List<string> arguments )
+	{
+		this.arguments = arguments;
 		string? additional_arguments_file_name = TryExtractOption( "argumentFile" );
 		if( additional_arguments_file_name != null )
 		{

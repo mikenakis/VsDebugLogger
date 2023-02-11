@@ -1,9 +1,8 @@
-﻿namespace VsDebugLogger.Framework.FileSystem;
+﻿namespace Framework.FileSystem;
 
 using System.Threading.Tasks;
-using VsDebugLogger.Framework.Logging;
-using Sys = System;
-using SysIo = System.IO;
+using Sys = Sys;
+using SysIo = SysIo;
 using static Statics;
 
 ///<summary>Common base class for <see cref="FilePath"/> and <see cref="DirectoryPath"/>.</summary>

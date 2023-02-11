@@ -1,4 +1,4 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
 public delegate R Function<out R>();
 

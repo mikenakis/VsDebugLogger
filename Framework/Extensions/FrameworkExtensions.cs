@@ -1,8 +1,8 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework.Extensions;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using SysText = System.Text;
+using SysText = SysText;
 using static Statics;
 
 public static class FrameworkExtensions
@@ -27,6 +27,16 @@ public static class FrameworkExtensions
 		T result = self[index];
 		self.RemoveAt( index );
 		return result;
+	}
+
+	//PEARL: the remove-item-from-list method of DotNet is not really a "remove" method, it is actually a "try-remove" method, because it returns a
+	//boolean to indicate success or failure. So, if we want a real "remove" function which will actually fail on failure, (duh!) we have to introduce it
+	//ourselves.  Unfortunately, since the name `Remove` is taken, we have to give the new function a different name, (I chose `DoRemove`,) so we still
+	//have to remember to invoke `DoRemove()` instead of `Remove()`.
+	public static void DoRemove<T>( this IList<T> self, T item )
+	{
+		bool ok = self.Remove( item );
+		Assert( ok );
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

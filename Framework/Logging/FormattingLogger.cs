@@ -1,10 +1,10 @@
-﻿namespace VsDebugLogger.Framework.Logging;
+﻿namespace Framework.Logging;
 
 using System.Collections.Generic;
-using SysText = System.Text;
-using SysThread = System.Threading;
+using SysText = SysText;
+using SysThread = SysThread;
 
-public class FormattingLogger : Logger
+public class FormattingLogger
 {
 	private readonly Procedure<string> log_line_consumer;
 	private int longest_first_part_length;
@@ -14,7 +14,9 @@ public class FormattingLogger : Logger
 		this.log_line_consumer = log_line_consumer;
 	}
 
-	public override void AddLogEntry( LogEntry log_entry )
+	public Logger EntryPoint => add_log_entry;
+
+	private void add_log_entry( LogEntry log_entry )
 	{
 		IReadOnlyList<string> parts = log_entry.ToStrings();
 		SysText.StringBuilder string_builder = new SysText.StringBuilder();

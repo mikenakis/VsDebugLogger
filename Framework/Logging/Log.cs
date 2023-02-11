@@ -1,14 +1,14 @@
-﻿namespace VsDebugLogger.Framework.Logging;
+﻿namespace Framework.Logging;
 
 using System.Collections.Generic;
 using System.Linq;
-using Sys = System;
-using SysCompiler = System.Runtime.CompilerServices;
-using SysDiag = System.Diagnostics;
-using SysText = System.Text;
-using SysReflect = System.Reflection;
+using Sys = Sys;
+using SysCompiler = SysCompiler;
+using SysDiag = SysDiag;
+using SysText = SysText;
+using SysReflect = SysReflect;
 using static Statics;
-using VsDebugLogger.Framework;
+using Framework.Extensions;
 
 public static class Log
 {
@@ -52,7 +52,7 @@ public static class Log
 	{
 		source_file_name = fix_source_file_name( source_file_name );
 		LogEntry entry = new LogEntry( log_level, utc, message, source_file_name, source_line_number );
-		Logger.Instance.AddLogEntry( entry );
+		GlobalLogger.Instance.Invoke( entry );
 	}
 
 	private static string fix_message( string message )

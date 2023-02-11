@@ -1,4 +1,4 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
 using System;
 using static Statics;

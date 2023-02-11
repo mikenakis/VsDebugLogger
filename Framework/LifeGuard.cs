@@ -1,13 +1,13 @@
 ﻿#nullable enable
-namespace VsDebugLogger.Framework
+namespace Framework
 {
 	using System.Collections.Generic;
 	using System.Linq;
 	using System.Reflection;
 	using System.Threading;
 	using Framework.Logging;
-	using Sys = System;
-	using SysDiag = System.Diagnostics;
+	using Sys = Sys;
+	using SysDiag = SysDiag;
 	using SysComp = System.Runtime.CompilerServices;
 	using static Statics;
 
@@ -24,9 +24,7 @@ namespace VsDebugLogger.Framework
 			return Create( frames_to_skip: 1, collect_stack_trace, caller_file_path, caller_line_number );
 		}
 
-		public static LifeGuard Create( int frames_to_skip, bool collect_stack_trace = false, //
-				[SysComp.CallerFilePath]
-				string caller_file_path = null!, [SysComp.CallerLineNumber] int caller_line_number = 0 )
+		public static LifeGuard Create( int frames_to_skip, bool collect_stack_trace = false, [SysComp.CallerFilePath] string caller_file_path = null!, [SysComp.CallerLineNumber] int caller_line_number = 0 )
 		{
 			Assert( caller_file_path != null );
 			if( !DebugMode )
@@ -108,8 +106,7 @@ namespace VsDebugLogger.Framework
 					this.line_number = line_number;
 				}
 
-				[Sys.Obsolete]
-				public override bool Equals( object? other ) => other is SourceLocation kin && equals( kin );
+				[Sys.Obsolete] public override bool Equals( object? other ) => other is SourceLocation kin && equals( kin );
 
 				private bool equals( SourceLocation other ) => file_path == other.file_path && line_number == other.line_number;
 				public override int GetHashCode() => Sys.HashCode.Combine( file_path, line_number );

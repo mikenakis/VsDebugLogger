@@ -20,11 +20,27 @@ VsDebugLogger fixes this problem. The idea is that we do all of our logging into
 
 # How to use VsDebugLogger
 
-When you run VsDebugLogger you supply 3 parameters:
+VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds.
 
-- **file=**_filename_ is the full path name to your log file.
-- **interval=**_floating-point-number_ specifies the amount of time to wait between polls, in seconds. If omitted, the default is 1 second. (This option may be deprecated later if I start using `FileSystemWatcher`.)
-- **solution=**_name_ identifies which running instance of Visual Studio to send the output to, based on the name of the solution loaded by that running instance. If omitted, the instance will be picked at random.
+Add the following function to your application:
+
+```
+private static object setup_debug_logging( string solution_name, string log_file_pathname )
+{
+	var pipe = new System.IO.Pipes.NamedPipeClientStream( ".", "VsDebugLogger", //
+			System.IO.Pipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None );
+	pipe.Connect( 1000 );
+	System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe );
+	writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );
+	writer.Flush();
+	return pipe;
+}
+```
+Make sure to invoke this function as early as possible during application startup.
+
+Pass it the name of your solution, and the full path name to the log file of your application.
+
+Store the result in a member variable of your application so that it will stay alive until your application process ends.
 
 # Status of the project
 
@@ -45,21 +61,21 @@ If you do decide to contribute, please contact me first to arrange the specifics
 
 # TO DO list
 
-- ~~Use a FileSystemWatcher instead of polling~~
-    - Nope, this won't work. The use of FileSystemWatcher has a couple of severe disadvantages:
-    	1. It won't work on network drives.
-    		- Not really a problem in my case.
-		1. It won't notify about changes in a file unless a handle to the file is opened or closed.
-    		- Very much a problem in my case, because an application keeps a log file open while appending to it; log files are very rarely closed.
-    		- See StackOverflow: "FileSystemWatcher changed event (for "LastWrite") is unreliable" https://stackoverflow.com/q/9563037/773113
-- ~~Use FileInfo.Length instead of opening the file and invoking FileStream.Length~~
-    - This did not work at first, probably for the same reasons that FileSystemWatcher does not work. (The Windows File System refrains from updating this information unless a file handle is opened or closed.) However, I was able to make it work by performing a FileInfo.Refresh() before querying the length. It remains to be seen whether these two operations are faster than a single FileStream.Length.
+- Handle spaces in names.
+    - Currently, if the solution name or the log pathname contain any spaces, bad things will happen.
+- Add back-tracking on error
+    - If VsDebugLogger is unable to send a piece of text to Visual Studio, it should leave the log file offset where it was, so as to retry on the next tick.
+- Handle pre-existing log content
+    - Add the ability to indicate whether we want any existing content in a log file to be skipped or to be emitted to VisualStudio. (Currently we skip it, but that's probably not a good idea.)
+- Add persisting and restoring of the window geometry across runs
+- Get rid of settings as command-line arguments
+    - Store them in some settings file. 
+	- This is necessary because multiple different instances of VsDebugLogger may be launched from various applications in various solutions, but all these instances will immediately terminate except the one which was launched first, therefore the settings in effect will be whatever settings were passed to the first one launched, which is arbitrary.
+- Display the currently active sessions in a list box
+    - Possibly with statistics, like number of bytes logged so far, possibly even with an animated graph
 - Make VsDebugLogger more available
   - Support launching of VsDebugLogger on demand
     - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
-  - ~~Turn it into a service~~
-    - See Stack Overflow - "Using a FileSystemWatcher with Windows Service" - https://stackoverflow.com/q/30830565/773113 
-	- Actually, no, it should not be turned into a service, because services are useful for doing things while nobody is logged on, while this application is only useful to a logged-on user.
   - Once launched, make it minimize-to-tray
     - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
 	- See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
@@ -71,6 +87,32 @@ If you do decide to contribute, please contact me first to arrange the specifics
 	- See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
 	- See possemeeg.wordpress.com: "Minimize to tray icon in WPF" https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
 	- See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
-- Support multiple applications
-    - Maintain a socket (or named-pipe) connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
-	- Then of course an interesting possibility is to transmit the log text via that connection so it is VsDebugLogger that also does the appending to the file. (And if VsDebugLogger is unavailable, then the application does the logging by itself.)
+- Replace the logging text box with a virtual text box.
+    - Because the text in there might become long.
+- Display the log text inside VsDebugLogger
+    - If we do this, then the following possibilities become available:
+    	- When a log line is clicked, we can make VisualStudio go to the specific file and line using Visual Studio Automation.
+    	- log line coloring per log level
+		- margin indicators
+		- Shorten the full pathnames of source files by stripping away the solution directory prefix from them.
+		- show running counts of lines logged at different log levels
+		- display an animated graph showing how the number-of-lines-logged-per-second varies.
+		- display timestamps as:
+    		- full UTC date-time string
+			- offset from the moment the application was started
+			- delta from the previous log line
+		- provide audio feedback when lines of various levels are logged.
+	- We could either merge all log files from a certain solution into one log display, (as per visual studio output window,) or show them in separate tabs.
+- ~~Support multiple solutions and multiple log files per solution~~ - DONE
+    - Maintain a named-pipe connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
+- ~~Use a FileSystemWatcher instead of polling~~
+    - Nope, this won't work. The use of FileSystemWatcher has a couple of severe disadvantages:
+    	1. It won't work on network drives.
+    		- Not really a problem in my case.
+		1. It won't notify about changes in a file unless a handle to the file is opened or closed.
+    		- Very much a problem in my case, because an application keeps a log file open while appending to it; log files are very rarely closed.
+    		- See StackOverflow: "FileSystemWatcher changed event (for "LastWrite") is unreliable" https://stackoverflow.com/q/9563037/773113
+- ~~Use FileInfo.Length instead of opening the file and invoking FileStream.Length~~ - DONE
+    - This did not work at first, probably for the same reasons that FileSystemWatcher does not work. (The Windows File System refrains from updating this information unless a file handle is opened or closed.) However, I was able to make it work by performing a FileInfo.Refresh() before querying the length. It remains to be seen whether these two operations are faster than opening the file and querying the length of the open file.
+- ~~Turn VsDebugLogger into a service~~
+	- Actually, no, it should not be turned into a service, because services are useful for doing things while nobody is logged on, while this application is only useful to a logged-on user.

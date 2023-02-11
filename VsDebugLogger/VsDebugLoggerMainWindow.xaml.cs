@@ -1,45 +1,21 @@
 ﻿namespace VsDebugLogger;
 
-using Sys = System;
-using Wpf = System.Windows;
+using Framework.Logging;
 
 public partial class VsDebugLoggerMainWindow //: Wpf.Window
 {
-	private readonly string[] program_arguments;
-
-	// ReSharper disable once NotAccessedField.Local
-	private TheVsDebugLogger? vs_debug_logger = null;
-
-	//TODO: select specific instance of visual studio
-	//See https://stackoverflow.com/questions/14205933/how-do-i-get-the-dte-for-running-visual-studio-instance
-
-	public VsDebugLoggerMainWindow( string[] program_arguments )
+	public VsDebugLoggerMainWindow()
 	{
-		this.program_arguments = program_arguments;
 		InitializeComponent();
-		Loaded += window_loaded;
+		GlobalLogger.Instance = DistributingLogger.Of( DebugLogger.Instance, log );
 	}
 
-	private string last_text = "";
-
-	private void log( string text )
+	private void log( LogEntry log_entry )
 	{
-		if( text == last_text )
+		if( log_entry.Level == LogLevel.Debug )
 			return;
-		last_text = text;
+		string text = log_entry.Message;
 		StatusText.Text += text + "\r\n";
 		StatusText.ScrollToEnd();
-	}
-
-	private void window_loaded( object sender, Wpf.RoutedEventArgs routed_event_args )
-	{
-		try
-		{
-			vs_debug_logger = new TheVsDebugLogger( program_arguments, log );
-		}
-		catch( Sys.ApplicationException application_exception )
-		{
-			log( application_exception.Message );
-		}
 	}
 }

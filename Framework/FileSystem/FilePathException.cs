@@ -1,6 +1,6 @@
-﻿namespace VsDebugLogger.Framework.FileSystem;
+﻿namespace Framework.FileSystem;
 
-using Sys = System;
+using Sys = Sys;
 
 public class FilePathException : Sys.Exception
 {

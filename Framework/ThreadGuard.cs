@@ -1,7 +1,7 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
-using Sys = System;
-using SysThread = System.Threading;
+using Sys = Sys;
+using SysThread = SysThread;
 using static Statics;
 
 public abstract class ThreadGuard

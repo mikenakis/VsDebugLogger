@@ -1,12 +1,10 @@
-﻿namespace VsDebugLogger.Framework.FileSystem;
+﻿namespace Framework.FileSystem;
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
-using VsDebugLogger.Framework.Logging;
-using Sys = System;
-using SysIo = System.IO;
+using Sys = Sys;
+using SysIo = SysIo;
 using static Statics;
 
 public sealed class DirectoryPath : FileSystemPath

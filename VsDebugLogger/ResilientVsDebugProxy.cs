@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Framework;
+using Framework.FileSystem;
 using Microsoft.VisualStudio.OLE.Interop;
-using VsDebugLogger.Framework;
-using VsDebugLogger.Framework.FileSystem;
 using VsAutomation80 = EnvDTE80;
 using VsAutomation = EnvDTE;
-using static Statics;
+using static Framework.Statics;
 
 // Portions from https://www.codeproject.com/Articles/5747/Reading-Command-line-build-logs-into-the-Visual-St converted using https://converter.telerik.com/
 // Portions from Stack Overflow: "How do I get the DTE for running Visual Studio instance?" https://stackoverflow.com/a/14205934/773113
@@ -17,20 +17,18 @@ public class ResilientVsDebugProxy
 {
 	private const string output_window_pane_name = "Debug";
 	private readonly string solution_name;
-	private readonly Procedure<string> logger;
 	private VsAutomation.OutputWindowPane? pane;
 
-	public ResilientVsDebugProxy( string solution_name, Procedure<string> logger )
+	public ResilientVsDebugProxy( string solution_name )
 	{
 		this.solution_name = solution_name;
-		this.logger = logger;
 	}
 
 	public bool Write( string text )
 	{
 		if( pane == null )
 		{
-			pane = try_get_output_window_pane( solution_name, logger );
+			pane = try_get_output_window_pane( solution_name );
 			if( pane == null )
 				return false;
 		}
@@ -41,32 +39,32 @@ public class ResilientVsDebugProxy
 		}
 		catch( Exception exception )
 		{
-			logger.Invoke( $"Failed to output text to the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
+			Log.Error( $"Failed to output text to the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
 			pane = null;
 			return false;
 		}
 		return true;
 	}
 
-	private static VsAutomation.OutputWindowPane? try_get_output_window_pane( string solution_name, Procedure<string> logger )
+	private static VsAutomation.OutputWindowPane? try_get_output_window_pane( string solution_name )
 	{
 		try
 		{
-			return get_vs_output_window_pane( solution_name, logger );
+			return get_vs_output_window_pane( solution_name );
 		}
 		catch( Exception exception )
 		{
-			logger.Invoke( $"Failed to acquire the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
+			Log.Error( $"Failed to acquire the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
 			return null;
 		}
 	}
 
-	private static VsAutomation.DTE? get_vs_instance( string solution_name, Procedure<string> logger )
+	private static VsAutomation.DTE? get_vs_instance( string solution_name )
 	{
 		List<VsAutomation80.DTE2> vs_instances = enumerate_vs_instances().ToList();
 		if( vs_instances.Count == 0 )
 		{
-			logger.Invoke( "Could not find any running instances of Visual Studio." );
+			Log.Error( "Could not find any running instances of Visual Studio." );
 			return null;
 		}
 		if( solution_name == "" )
@@ -77,7 +75,7 @@ public class ResilientVsDebugProxy
 			if( this_solution_name == solution_name )
 				return vs_instance;
 		}
-		logger.Invoke( $"No running instance of Visual Studio has solution '{solution_name}' open." );
+		Log.Error( $"No running instance of Visual Studio has solution '{solution_name}' open." );
 		return null;
 	}
 
@@ -98,9 +96,9 @@ public class ResilientVsDebugProxy
 		}
 	}
 
-	private static VsAutomation.OutputWindowPane? get_vs_output_window_pane( string solution_name, Procedure<string> logger )
+	private static VsAutomation.OutputWindowPane? get_vs_output_window_pane( string solution_name )
 	{
-		VsAutomation.DTE? vs_instance = get_vs_instance( solution_name, logger );
+		VsAutomation.DTE? vs_instance = get_vs_instance( solution_name );
 		if( vs_instance == null )
 			return null;
 		VsAutomation.Window window_item = vs_instance.Windows.Item( VsAutomation.Constants.vsWindowKindOutput );

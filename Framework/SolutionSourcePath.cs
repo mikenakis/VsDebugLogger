@@ -1,6 +1,6 @@
-﻿namespace VsDebugLogger.Framework;
+﻿namespace Framework;
 
-using Sys = System;
+using Sys = Sys;
 using SysComp = System.Runtime.CompilerServices;
 
 public static class SolutionSourcePath
