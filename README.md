@@ -23,24 +23,31 @@ VsDebugLogger fixes this problem. The idea is that we do all of our logging into
 VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds.
 
 Add the following function to your application:
-
 ```
-private static object setup_debug_logging( string solution_name, string log_file_pathname )
-{
-	var pipe = new System.IO.Pipes.NamedPipeClientStream( ".", "VsDebugLogger", //
-			System.IO.Pipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None );
-	pipe.Connect( 1000 );
-	System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe );
-	writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );
-	writer.Flush();
-	return pipe;
-}
+	private static object setup_debug_logging( string solution_name, string log_file_pathname, //
+			string path_to_vs_debug_logger )
+	{
+#if DEBUG
+		System.Diagnostics.Process.Start( path_to_vs_debug_logger );
+		var pipe = new System.IO.Pipes.NamedPipeClientStream( ".", "VsDebugLogger", //
+				System.IO.Pipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None );
+		pipe.Connect( 1000 );
+		System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe );
+		writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );
+		writer.Flush();
+		return pipe;
+#else
+		return null;
+#endif
+	}
 ```
-Make sure to invoke this function as early as possible during application startup.
+Invoke the above function as early as possible during application startup, passing it the following:
 
-Pass it the name of your solution, and the full path name to the log file of your application.
+- The name of your solution
+- The full path name to the log file of your application.
+- The full path name to VsDebugLogger.exe on your computer.
 
-Store the result in a member variable of your application so that it will stay alive until your application process ends.
+**Important:** Store the result in a member variable of your application so that it will stay alive until your application process ends.
 
 # Status of the project
 
@@ -73,20 +80,17 @@ If you do decide to contribute, please contact me first to arrange the specifics
 	- This is necessary because multiple different instances of VsDebugLogger may be launched from various applications in various solutions, but all these instances will immediately terminate except the one which was launched first, therefore the settings in effect will be whatever settings were passed to the first one launched, which is arbitrary.
 - Display the currently active sessions in a list box
     - Possibly with statistics, like number of bytes logged so far, possibly even with an animated graph
-- Make VsDebugLogger more available
-  - Support launching of VsDebugLogger on demand
-    - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
-  - Once launched, make it minimize-to-tray
-    - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
-	- See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
-	- See Stack Overflow: "C# trayicon using wpf" https://stackoverflow.com/q/12428006/773113
-	- See Stack Overflow: "WPF applications tray icon [closed]" https://stackoverflow.com/q/41704392/773113
-	- See Stack Overflow: "Determining location of tray icon" https://stackoverflow.com/q/4366449/773113
-	- See Stack Overflow: "Can I use NotifyIcon in WPF?" https://stackoverflow.com/q/17674761/773113
-	- See Code Project: "WPF NotifyIcon" https://www.codeproject.com/Articles/36468/WPF-NotifyIcon-2
-	- See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
-	- See possemeeg.wordpress.com: "Minimize to tray icon in WPF" https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
-	- See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
+- Once launched, make it minimize-to-tray
+  - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
+  - See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
+  - See Stack Overflow: "C# trayicon using wpf" https://stackoverflow.com/q/12428006/773113
+  - See Stack Overflow: "WPF applications tray icon [closed]" https://stackoverflow.com/q/41704392/773113
+  - See Stack Overflow: "Determining location of tray icon" https://stackoverflow.com/q/4366449/773113
+  - See Stack Overflow: "Can I use NotifyIcon in WPF?" https://stackoverflow.com/q/17674761/773113
+  - See Code Project: "WPF NotifyIcon" https://www.codeproject.com/Articles/36468/WPF-NotifyIcon-2
+  - See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
+  - See possemeeg.wordpress.com: "Minimize to tray icon in WPF" https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
+  - See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
 - Replace the logging text box with a virtual text box.
     - Because the text in there might become long.
 - Display the log text inside VsDebugLogger
@@ -103,6 +107,8 @@ If you do decide to contribute, please contact me first to arrange the specifics
 			- delta from the previous log line
 		- provide audio feedback when lines of various levels are logged.
 	- We could either merge all log files from a certain solution into one log display, (as per visual studio output window,) or show them in separate tabs.
+- ~~Support launching of VsDebugLogger on demand~~ DONE
+    - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
 - ~~Support multiple solutions and multiple log files per solution~~ - DONE
     - Maintain a named-pipe connection with each running application to negotiate which log file to monitor on behalf of that application and to know (via socket disconnection) when logging can pause.
 - ~~Use a FileSystemWatcher instead of polling~~
