@@ -39,6 +39,7 @@ public partial class VsDebugLoggerApp //: Wpf.Application
 		catch( Sys.ApplicationException exception )
 		{
 			Log.Error( exception.Message );
+			Shutdown( -1 );
 		}
 		catch( Sys.Exception exception )
 		{
