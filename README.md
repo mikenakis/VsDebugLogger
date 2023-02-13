@@ -23,7 +23,7 @@ VsDebugLogger fixes this problem. The idea is that we do all of our logging into
 VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds.
 
 Add the following function to your application:
-```
+```csharp
 	private static object setup_debug_logging( string solution_name, string log_file_pathname, //
 			string path_to_vs_debug_logger )
 	{
