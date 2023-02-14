@@ -1,10 +1,6 @@
 ﻿namespace VsDebugLogger;
 
-using Framework;
 using Framework.FileSystem;
-using Sys = System;
-using SysText = System.Text;
-using SysIo = System.IO;
 using static Framework.Statics;
 
 internal class ResilientInputStream
@@ -13,10 +9,11 @@ internal class ResilientInputStream
 	private long offset = 0;
 	private SysIo.FileStream? file_stream;
 
-	public ResilientInputStream( FilePath file_path )
+	public ResilientInputStream( FilePath file_path, bool skip_existing )
 	{
 		this.file_path = file_path;
-		skip_existing_file_content();
+		if( skip_existing )
+			skip_existing_file_content();
 	}
 
 	private void skip_existing_file_content()
@@ -25,7 +22,7 @@ internal class ResilientInputStream
 			return;
 		if( !try_get_file_length( file_path, ref file_stream, ref offset, out long file_stream_length ) )
 			return;
-		Log.Info( $"Skipping '{file_stream_length}' bytes already in the file." );
+		Log.Info( $"Skipping {file_stream_length} bytes already in the file." );
 		offset = file_stream_length;
 	}
 

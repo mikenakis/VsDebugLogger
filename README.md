@@ -1,6 +1,6 @@
 ﻿# VsDebugLogger<br><sup><sub>Keeps appending a text file to the debug output window of Visual Studio.</sup></sub>
 
-*Because using debug-writeline is **350 times slower** than appending to a text file and flushing each line.*
+*Because debug-writeline is **two orders of magnitude slower** than appending to a text file.*
 
 # What is the problem
 
@@ -30,7 +30,7 @@ Add the following function to your application:
 #if DEBUG
 		System.Diagnostics.Process.Start( path_to_vs_debug_logger );
 		var pipe = new System.IO.Pipes.NamedPipeClientStream( ".", "VsDebugLogger", //
-				System.IO.Pipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None );
+				System.IO.Pipes.PipeDirection.InOut, System.IO.Pipes.PipeOptions.None );
 		pipe.Connect( 1000 );
 		System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe );
 		writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );

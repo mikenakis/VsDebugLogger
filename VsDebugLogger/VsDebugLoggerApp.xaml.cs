@@ -184,7 +184,6 @@ public class TheApp : Sys.IDisposable
 			if( parameters.Count != 0 )
 				Log.Debug( $"Unexpected parameters received: {parameters.MakeString( " " )}" );
 			Wpf.Application.Current.MainWindow!.Activate();
-			Log.Info( "Activated." );
 		}
 
 		public override void LineReceived( string line )
@@ -203,13 +202,13 @@ public class TheApp : Sys.IDisposable
 		public static LogFileSession Create( TheApp the_app, List<string> parameters )
 		{
 			CommandlineArgumentParser commandline_argument_parser = new CommandlineArgumentParser( parameters );
-
+			bool skip_existing = commandline_argument_parser.ExtractSwitch( "skip_existing" );
 			string file_path_as_string = commandline_argument_parser.ExtractOption( "file" );
 			if( !SysIo.Path.IsPathFullyQualified( file_path_as_string ) )
 				throw new Sys.ApplicationException( $"Expected a fully qualified pathname, got '{file_path_as_string}'." );
 			FilePath file_path = FilePath.FromAbsolutePath( file_path_as_string );
 			string solution_name = commandline_argument_parser.ExtractOption( "solution", "" );
-			return new LogFileSession( the_app, file_path, solution_name );
+			return new LogFileSession( the_app, file_path, solution_name, skip_existing );
 		}
 
 		private readonly ResilientVsDebugProxy debug_pane;
@@ -217,7 +216,7 @@ public class TheApp : Sys.IDisposable
 		private readonly FilePath file_path;
 		private readonly string solution_name;
 
-		private LogFileSession( TheApp the_app, FilePath file_path, string solution_name )
+		private LogFileSession( TheApp the_app, FilePath file_path, string solution_name, bool skip_existing )
 				: base( the_app )
 		{
 			this.file_path = file_path;
@@ -226,7 +225,7 @@ public class TheApp : Sys.IDisposable
 			Log.Info( $"Reading from '{file_path}'" );
 			Log.Info( $"Appending to the debug output window of solution '{solution_name}'." );
 			debug_pane = new ResilientVsDebugProxy( solution_name );
-			resilient_input_stream = new ResilientInputStream( file_path );
+			resilient_input_stream = new ResilientInputStream( file_path, skip_existing );
 		}
 
 		public override void LineReceived( string line )
@@ -253,5 +252,7 @@ public class TheApp : Sys.IDisposable
 				return;
 			//log( "Appended text." );
 		}
+
+		public override string ToString() => $"{file_path} -> {solution_name}";
 	}
 }
