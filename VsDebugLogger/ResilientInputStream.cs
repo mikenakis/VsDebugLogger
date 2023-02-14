@@ -1,5 +1,6 @@
 ﻿namespace VsDebugLogger;
 
+using Framework;
 using Framework.FileSystem;
 using static Framework.Statics;
 
@@ -26,9 +27,8 @@ internal class ResilientInputStream
 		offset = file_stream_length;
 	}
 
-	public bool ReadNext( out string text )
+	public bool ReadNext( Function<bool, string> text_consumer )
 	{
-		text = null!;
 		if( !try_get_file_length( file_path, ref file_stream, ref offset, out long file_stream_length ) )
 			return false;
 
@@ -38,21 +38,16 @@ internal class ResilientInputStream
 			offset = 0;
 		}
 
-		SysText.StringBuilder string_builder = new SysText.StringBuilder();
-		while( offset < file_stream_length )
-		{
-			long length = file_stream_length - offset;
-			int count = length < int.MaxValue ? (int)length : int.MaxValue;
-			(byte[]? buffer, int n) = try_read( file_path, ref file_stream, ref offset, count ) ?? default;
-			if( buffer == null )
+		long length = file_stream_length - offset;
+		int count = length < int.MaxValue ? (int)length : int.MaxValue;
+		(byte[]? buffer, int n) = try_read( file_path, ref file_stream, ref offset, count ) ?? default;
+		if( buffer == null )
+			return false;
+		string text = SysText.Encoding.UTF8.GetString( buffer, 0, n );
+		if( text.Length > 0 )
+			if( !text_consumer.Invoke( text ) )
 				return false;
-			if( n == 0 )
-				break;
-			offset += n;
-			string_builder.Append( SysText.Encoding.UTF8.GetString( buffer, 0, n ) );
-		}
-
-		text = string_builder.ToString();
+		offset += n;
 		return true;
 	}
 

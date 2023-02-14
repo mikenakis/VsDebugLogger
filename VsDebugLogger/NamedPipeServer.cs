@@ -1,7 +1,6 @@
 ﻿namespace VsDebugLogger;
 
 using Framework;
-using System.Windows.Shapes;
 using SysIoPipes = SysIo.Pipes;
 
 internal sealed class NamedPipeServer : Sys.IDisposable
@@ -11,7 +10,7 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 
 	public delegate Session SessionFactory( string verb, List<string> parameters );
 
-	public interface Session : Sys.IDisposable
+	public interface Session : /*Sys.IDisposable,*/ Sys.IAsyncDisposable
 	{
 		void LineReceived( string line );
 	}
@@ -50,7 +49,7 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 	private NamedPipeServer( List<SysTasks.Task> tasks )
 	{
 		this.tasks = tasks;
-		Log.Info( $"Named pipe server {pipe_name} is running." );
+		Log.Info( $"Named pipe server '{pipe_name}' is running." );
 	}
 
 	private static async SysTasks.Task run_named_pipe_server( int instance_number, string pipe_name, SessionFactory session_factory )
@@ -78,18 +77,18 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 							throw new Sys.ApplicationException( "Malformed request" );
 						string verb = parts[0];
 						List<string> parameters = parts.Skip( 1 ).ToList();
-						using( Session session = session_factory.Invoke( verb, parameters ) )
+						await using( Session session = session_factory.Invoke( verb, parameters ) )
+						{
 							for( ;; )
 							{
 								string? line = await reader.ReadLineAsync();
 								if( line == null )
-								{
-									Log.Debug( $"instance {instance_number} Session: end-of-stream" );
 									break;
-								}
 								Log.Debug( $"instance {instance_number} Session: {line}" );
 								session.LineReceived( line );
 							}
+							Log.Debug( $"instance {instance_number} Session: end-of-stream" );
+						}
 					}
 				}
 				catch( Sys.Exception exception )
@@ -97,14 +96,6 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 					Log.Error( $"instance {instance_number} Session failed", exception );
 				}
 				Log.Debug( $"instance {instance_number} NamedPipeServer session ended." );
-				// try
-				// {
-				// 	named_pipe_server.Disconnect();
-				// }
-				// catch( Sys.Exception exception )
-				// {
-				// 	Log.Debug( $"named_pipe_server.Disconnect() failed with {exception.GetType()}: {exception.Message}" );
-				// }
 				await named_pipe_server.DisposeAsync();
 			}
 		}
@@ -114,61 +105,6 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 		}
 		// ReSharper disable once FunctionNeverReturns
 	}
-
-	// private static NamedPipeServer start_named_pipe_server( Function<Session> session_factory )
-	// {
-	// 	string pipe_name = DotNetHelpers.MainModuleName;
-	// 	NamedPipeServer named_pipe_server;
-	// 	try
-	// 	{
-	// 		named_pipe_server = NamedPipeServer.Create( pipe_name );
-	// 	}
-	// 	catch( SysIo.IOException io_exception ) when( unchecked((uint)io_exception.HResult) == 0x800700E7 ) //"All pipe instances are busy"
-	// 	{
-	// 		throw new Sys.ApplicationException( "The application is already running." );
-	// 	}
-	// 	Log.Info( $"Named pipe server {pipe_name} running." );
-	// 	Task task = run_named_pipe_server( named_pipe_server, session_factory );
-	// 	return named_pipe_server;
-	// }
-
-	// private static async Task run_named_pipe_server( NamedPipeServer named_pipe_server, Function<Session> session_factory )
-	// {
-	// 	for( ;; )
-	// 	{
-	// 		Log.Debug( "NamedPipeServer waiting for a session..." );
-	// 		await named_pipe_server.Start();
-	// 		Log.Debug( "NamedPipeServer session established." );
-	// 		try
-	// 		{
-	// 			using( SysIo.StreamReader reader = new SysIo.StreamReader( named_pipe_server.Stream ) )
-	// 			{
-	// 				await using( SysIo.StreamWriter writer = new SysIo.StreamWriter( named_pipe_server.Stream ) )
-	// 				{
-	// 					writer.AutoFlush = true;
-	// 					using( Session session = session_factory.Invoke() )
-	// 					{
-	// 						for( ;; )
-	// 						{
-	// 							string? line = await reader.ReadLineAsync();
-	// 							if( line == null )
-	// 								break;
-	// 							session.LineReceived( line );
-	// 						}
-	// 					}
-	// 					Log.Debug( "NamedPipeServer session ended." );
-	// 				}
-	// 			}
-	// 			named_pipe_server.Stop();
-	// 		}
-	// 		catch( Sys.Exception exception )
-	// 		{
-	// 			Log.Error( "Failed", exception.Message );
-	// 		}
-	// 	}
-	// 	// Assert( false ); //The Async Named Pipe Server has completed; this is not supposed to happen.
-	// 	// named_pipe_server.Dispose();
-	// }
 
 	public void Dispose()
 	{

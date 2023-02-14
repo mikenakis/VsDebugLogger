@@ -14,8 +14,8 @@ public partial class VsDebugLoggerMainWindow //: Wpf.Window
 	{
 		if( log_entry.Level == LogLevel.Debug )
 			return;
-		string text = log_entry.Message;
-		StatusText.Text += text + "\r\n";
+		string text = log_entry.Level + ": " + log_entry.Message + "\r\n";
+		StatusText.Text += text;
 		StatusText.ScrollToEnd();
 	}
 }

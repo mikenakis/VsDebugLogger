@@ -168,9 +168,10 @@ public class TheApp : Sys.IDisposable
 
 		public abstract void LineReceived( string line );
 
-		public virtual void Dispose()
+		public virtual SysTasks.ValueTask DisposeAsync()
 		{
 			TheApp.RemoveSession( this );
+			return SysTasks.ValueTask.CompletedTask;
 		}
 
 		public abstract void Tick();
@@ -230,27 +231,25 @@ public class TheApp : Sys.IDisposable
 
 		public override void LineReceived( string line )
 		{
-			Log.Debug( $"Line received: {line}" );
-			if( line == "Activate" )
-				Wpf.Application.Current.MainWindow!.Activate();
+			Log.Error( $"Unexpected line received: {line}" );
 		}
 
-		public override void Dispose()
+		public override async SysTasks.ValueTask DisposeAsync()
 		{
 			Log.Info( "Session ended." );
-			base.Dispose();
+			await SysTasks.Task.Delay( Sys.TimeSpan.FromSeconds( 5.0 ) );
+			await base.DisposeAsync();
 		}
 
 		public override void Tick()
 		{
-			//Log.Debug( $"Tick" );
-			if( !resilient_input_stream.ReadNext( out string text ) )
-				return;
-			if( text == "" )
-				return;
-			if( !debug_pane.Write( text ) )
-				return;
-			//log( "Appended text." );
+			resilient_input_stream.ReadNext( text =>
+				{
+					bool ok = debug_pane.Write( text );
+					if( ok )
+						Log.Debug( $"wrote {text.Length} characters." );
+					return ok;
+				} );
 		}
 
 		public override string ToString() => $"{file_path} -> {solution_name}";

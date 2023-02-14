@@ -71,10 +71,6 @@ If you do decide to contribute, please contact me first to arrange the specifics
 
 - Handle spaces in names.
     - Currently, if the solution name or the log pathname contain any spaces, bad things will happen.
-- Add back-tracking on error
-    - If VsDebugLogger is unable to send a piece of text to Visual Studio, it should leave the log file offset where it was, so as to retry on the next tick.
-- Handle pre-existing log content
-    - Add the ability to indicate whether we want any existing content in a log file to be skipped or to be emitted to VisualStudio. (Currently we skip it, but that's probably not a good idea.)
 - Add persisting and restoring of the window geometry across runs
 - Get rid of settings as command-line arguments
     - Store them in some settings file. 
@@ -108,6 +104,14 @@ If you do decide to contribute, please contact me first to arrange the specifics
 			- delta from the previous log line
 		- provide audio feedback when lines of various levels are logged.
 	- We could either merge all log files from a certain solution into one log display, (as per visual studio output window,) or show them in separate tabs.
+- ~~Ensure even the last line gets logged~~ - DONE
+    - Currently, when the logging application terminates, the last few lines that it emits to its log file are never sent by VsDebugLogger to the debug output of Visual Studio. This is happening because we use a named pipe session so that VsDebugLogger knows when logging may stop, but VsDebugLogger should not be too quick to stop the logging.
+- ~~Ensure even the last line gets logged even if there is an error~~ - DONE
+    - The "Call was rejected" error happens quite randomly, but one point when it is almost guaranteed to happen is in the few hundred millisecond window while the logging application gets terminated. This sabotages our efforts to ensure that even the last line gets logged.
+- ~~Add back-tracking on error~~ - DONE
+    - If VsDebugLogger is unable to send a piece of text to Visual Studio, it should leave the log file offset where it was, so as to retry on the next tick.
+- ~~Handle pre-existing log content~~ - DONE
+    - Add the ability to indicate whether we want any existing content in a log file to be skipped or to be emitted to VisualStudio. (Currently we skip it, but that's probably not a good idea.)
 - ~~Support launching of VsDebugLogger on demand~~ DONE
     - When an application launches, it should be able to somehow start VsDebugLogger if not already started.
 - ~~Support multiple solutions and multiple log files per solution~~ - DONE

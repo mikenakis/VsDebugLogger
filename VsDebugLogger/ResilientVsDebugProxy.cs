@@ -3,10 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Framework;
 using Framework.FileSystem;
-using Microsoft.VisualStudio.OLE.Interop;
+using VsInterop = Microsoft.VisualStudio.OLE.Interop;
 using VsAutomation80 = EnvDTE80;
 using VsAutomation = EnvDTE;
 using static Framework.Statics;
@@ -15,6 +13,10 @@ using static Framework.Statics;
 // Portions from Stack Overflow: "How do I get the DTE for running Visual Studio instance?" https://stackoverflow.com/a/14205934/773113
 public class ResilientVsDebugProxy
 {
+	// ReSharper disable InconsistentNaming
+	private const int RPC_E_CALL_REJECTED = unchecked((int)0x80010001U);
+	// ReSharper restore InconsistentNaming
+
 	private const string output_window_pane_name = "Debug";
 	private readonly string solution_name;
 	private VsAutomation.OutputWindowPane? pane;
@@ -25,6 +27,11 @@ public class ResilientVsDebugProxy
 	}
 
 	public bool Write( string text )
+	{
+		return try_output_text_to_pane( solution_name, ref pane, text );
+	}
+
+	private static bool try_output_text_to_pane( string solution_name, ref VsAutomation.OutputWindowPane? pane, string text )
 	{
 		if( pane == null )
 		{
@@ -39,7 +46,11 @@ public class ResilientVsDebugProxy
 		}
 		catch( Exception exception )
 		{
-			Log.Error( $"Failed to output text to the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
+			string message = $"Failed to output text to '{solution_name}'";
+			if( exception is SysInterop.COMException com_exception && com_exception.HResult == RPC_E_CALL_REJECTED )
+				Log.Warn( $"{message}. Reason: \"Call was rejected\". (Typical Microsoft nonsense.)" );
+			else
+				Log.Error( $"{message}: {exception.GetType()}: {exception.Message}" );
 			pane = null;
 			return false;
 		}
@@ -54,7 +65,11 @@ public class ResilientVsDebugProxy
 		}
 		catch( Exception exception )
 		{
-			Log.Error( $"Failed to acquire the '{output_window_pane_name}' pane of the Visual Studio Output Window: {exception.GetType()}: {exception.Message}" );
+			string message = $"Failed to acquire the '{output_window_pane_name}' pane of '{solution_name}'";
+			if( exception is SysInterop.COMException com_exception && com_exception.HResult == RPC_E_CALL_REJECTED )
+				Log.Warn( $"{message}: Reason: \"Call was rejected\". (Typical Microsoft nonsense.)" );
+			else
+				Log.Error( $"{message}: {exception.GetType()}: {exception.Message}" );
 			return null;
 		}
 	}
@@ -109,22 +124,20 @@ public class ResilientVsDebugProxy
 		return output_window.OutputWindowPanes.Add( output_window_pane_name );
 	}
 
-	[DllImport( "ole32.dll" )]
-	private static extern int CreateBindCtx( int reserved, out IBindCtx bind_ctx );
+	[SysInterop.DllImport( "ole32.dll" )] private static extern int CreateBindCtx( int reserved, out VsInterop.IBindCtx bind_ctx );
 
-	[DllImport( "ole32.dll" )]
-	private static extern int GetRunningObjectTable( int reserved, out IRunningObjectTable running_object_table );
+	[SysInterop.DllImport( "ole32.dll" )] private static extern int GetRunningObjectTable( int reserved, out VsInterop.IRunningObjectTable running_object_table );
 
 	private static IEnumerable<VsAutomation80.DTE2> enumerate_vs_instances()
 	{
-		int result = GetRunningObjectTable( 0, out IRunningObjectTable running_object_table );
+		int result = GetRunningObjectTable( 0, out VsInterop.IRunningObjectTable running_object_table );
 		Assert( result == 0 );
-		running_object_table.EnumRunning( out IEnumMoniker enum_moniker );
-		IMoniker[] moniker = new IMoniker[1];
+		running_object_table.EnumRunning( out VsInterop.IEnumMoniker enum_moniker );
+		VsInterop.IMoniker[] moniker = new VsInterop.IMoniker[1];
 		while( enum_moniker.Next( 1, moniker, out uint fetched ) == 0 )
 		{
 			Assert( fetched == 1 );
-			result = CreateBindCtx( 0, out IBindCtx bind_ctx );
+			result = CreateBindCtx( 0, out VsInterop.IBindCtx bind_ctx );
 			Assert( result == 0 );
 			moniker[0].GetDisplayName( bind_ctx, default, out string display_name );
 			if( display_name.StartsWith( "!VisualStudio", StringComparison.Ordinal ) )
