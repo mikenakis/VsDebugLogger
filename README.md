@@ -1,26 +1,39 @@
 ﻿# VsDebugLogger<br><sup><sub>Keeps appending a text file to the debug output window of Visual Studio.</sup></sub>
 
-*Because debug-writeline is **two orders of magnitude slower** than appending to a text file.*
+<p align="center">
+<img title="VsDebgLogger logo" src="VsDebugLogger-logo.svg" width="256"/><br/>
+</p>
+
+> ### *Because debug-writeline is **two orders of magnitude slower** than appending to a text file.*
 
 # What is the problem
 
 I am in favor of minimal logging; however, sometimes it happens that there is a lot of logging to be done. When this is the case, it really helps if the logging does not impose a serious performance penalty on the application that is doing the logging.
 
-When I compare various approaches to logging on my machine, I observe the following:
+I tried a little experiment. I compared the time it takes to emit a log line using the following methods:
+- debug-writeline (**System.Diagnostics.Debug.WriteLine()**) 
+- file-writeline (**System.IO.StreamWriter.WriteLine()** via **System.IO.FileStream** with **Flush()** after each line)
 
-- Emitting 1000 lines one-by-one via **System.Diagnostics.Debug.WriteLine()** takes a total of 1524 milliseconds. That is an absolutely terrifying 1.5 millisecond per line.
+To ensure the results were unbiased, I did the following:
+- I tried with bursts of 10, 100, 1000, or 10000 log lines, to make sure the observations are consistent regardless of burst size, and indeed they were.
+- I followed each burst with a sleep of 100 milliseconds, just in case something needed some time to cool down; it made no difference.
+- I tried either with or without the VSColorOutput plugin; it made no difference either.
 
-- Emitting 1000 lines one-by-one via a **System.IO.StreamWriter** into a **System.IO.FileStream** and invoking **Flush()** after each line takes a total of only 4.4 milliseconds. That is 4.4 microseconds per line, i.e. an astounding 350 times faster.
+My observations were as follows:
+
+- debug-writeline takes an absolutely terrifying 1.5 millisecond per line.
+
+- file-writeline takes 4.4 microseconds per line, i.e. an astounding 350 times faster.
 
 I do not care what are the technical or (quite likely) managerial excuses behind this situation, but to me it clearly means that some folks at Microsoft are incompetent dimwits who should be milking goats instead of trying to develop world-class software.
 
 # What is the solution
 
-VsDebugLogger fixes this problem. The idea is that we do all of our logging into a text file, (flushing each line to ensure that no line is lost if our application freezes,) and we have an external process running (it could also be a Visual Studio plugin) which keeps reading text as it is being appended to the file and emits that text to the debug output window of Visual Studio. This way, our application is only affected by the minimal performance overhead of writing to a log file, while Visual Studio can take all the time it wants to render and scroll its output window on its own threads.
+The idea behind VsDebugLogger is that we do all of our logging into a text file, (flushing each line to ensure that no line is lost if our application freezes,) and we have an external process running (it could also be a Visual Studio plugin) which keeps reading text as it is being appended to the file and emits that text to the debug output window of Visual Studio. This way, our application is only affected by the minimal performance overhead of writing to a log file, while Visual Studio can take all the time it needs to render and scroll its output window on its own threads.
 
 # How to use VsDebugLogger
 
-VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds.
+VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds. If omitted, the default is 1.0 second.
 
 Add the following function to your application:
 ```csharp
