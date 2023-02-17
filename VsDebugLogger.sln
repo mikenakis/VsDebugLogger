@@ -7,11 +7,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solutio
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		README.md = README.md
+		VsDebugLogger-logo.svg = VsDebugLogger-logo.svg
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VsDebugLogger", "VsDebugLogger\VsDebugLogger.csproj", "{36246CFB-F700-4C67-8191-64BC919E7142}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Framework", "Framework\Framework.csproj", "{CD6AD7E9-CC4F-43F0-B05F-E97FD14F2AC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework", "Framework\Framework.csproj", "{CD6AD7E9-CC4F-43F0-B05F-E97FD14F2AC1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
