@@ -9,17 +9,17 @@ using static Statics;
 
 public sealed class FilePath : FileSystemPath
 {
-	public static FilePath FromAbsolutePath( string full_path )
+	public static FilePath FromAbsolutePath( string fullPath )
 	{
-		Assert( SysIo.Path.IsPathRooted( full_path ) );
-		return new FilePath( full_path );
+		Assert( SysIo.Path.IsPathRooted( fullPath ) );
+		return new FilePath( fullPath );
 	}
 
 	public static FilePath FromRelativePath( string path )
 	{
 		Assert( !SysIo.Path.IsPathRooted( path ) );
-		string full_path = SysIo.Path.GetFullPath( path );
-		return FromAbsolutePath( full_path );
+		string fullPath = SysIo.Path.GetFullPath( path );
+		return FromAbsolutePath( fullPath );
 	}
 
 	public static FilePath FromRelativeOrAbsolutePath( string path )
@@ -27,9 +27,9 @@ public sealed class FilePath : FileSystemPath
 		return SysIo.Path.IsPathRooted( path ) ? FromAbsolutePath( path ) : FromRelativePath( path );
 	}
 
-	public static FilePath FromRelativeOrAbsolutePath( string path, DirectoryPath base_path_if_relative )
+	public static FilePath FromRelativeOrAbsolutePath( string path, DirectoryPath basePathIfRelative )
 	{
-		return SysIo.Path.IsPathRooted( path ) ? FromAbsolutePath( path ) : Of( base_path_if_relative, path );
+		return SysIo.Path.IsPathRooted( path ) ? FromAbsolutePath( path ) : Of( basePathIfRelative, path );
 	}
 
 	public static FilePath GetTempFileName()
@@ -40,14 +40,14 @@ public sealed class FilePath : FileSystemPath
 		//        - a zero-length file with the returned filename has already been created.
 		// PEARL ON PEARL: The Win32::GetTempFileName() which is used internally to implement this function DOES support passing the
 		//        desired extension as a parameter; however, System.IO.Path.GetTempFileName() passes the hard-coded extension ".tmp" to it.
-		string temp_file_name = SysIo.Path.GetTempFileName();
-		return FromAbsolutePath( temp_file_name );
+		string tempFileName = SysIo.Path.GetTempFileName();
+		return FromAbsolutePath( tempFileName );
 	}
 
-	public static FilePath Of( DirectoryPath directory_path, string file_name )
+	public static FilePath Of( DirectoryPath directoryPath, string fileName )
 	{
 		//Assert( fileName.IndexOfAny( SysIo.Path.GetInvalidFileNameChars() ) == -1 );
-		string path = SysIo.Path.Combine( directory_path.Path, file_name );
+		string path = SysIo.Path.Combine( directoryPath.Path, fileName );
 		return new FilePath( path );
 	}
 
@@ -57,12 +57,12 @@ public sealed class FilePath : FileSystemPath
 	public bool IsReadOnly => FileInfo.IsReadOnly;
 	public long Length => FileInfo.Length;
 
-	public FilePath( string full_path )
+	public FilePath( string fullPath )
 	{
-		Assert( SysIo.Path.IsPathRooted( full_path ) );
+		Assert( SysIo.Path.IsPathRooted( fullPath ) );
 		//Assert( path == SysIo.Path.Combine( NotNull( SysIo.Path.GetDirectoryName( path ) ), SysIo.Path.GetFileName( path ) ) ); Does not work with UNC paths. The following line, however, does.
-		Assert( SysIo.Path.GetFullPath( full_path ) == full_path );
-		FileInfo = new SysIo.FileInfo( full_path );
+		Assert( SysIo.Path.GetFullPath( fullPath ) == fullPath );
+		FileInfo = new SysIo.FileInfo( fullPath );
 	}
 
 	public DirectoryPath GetDirectory() => get_directory(); //new DirectoryPath( SysIo.Path.GetDirectoryName( FullName )! );
@@ -71,9 +71,9 @@ public sealed class FilePath : FileSystemPath
 	private DirectoryPath get_directory()
 	{
 		// PEARL: DotNet offers two ways of obtaining the directory of a file; which one is better? No one knows.
-		string directory_name = SysIo.Path.GetDirectoryName( FullName )!;
-		Assert( directory_name == SysIo.Directory.GetParent( FullName )!.FullName );
-		return new DirectoryPath( directory_name );
+		string directoryName = SysIo.Path.GetDirectoryName( FullName )!;
+		Assert( directoryName == SysIo.Directory.GetParent( FullName )!.FullName );
+		return new DirectoryPath( directoryName );
 	}
 
 	public FilePath WithReplacedExtension( string extension ) => FromAbsolutePath( SysIo.Path.ChangeExtension( FullName, extension ) );
@@ -107,11 +107,11 @@ public sealed class FilePath : FileSystemPath
 		SysIo.File.WriteAllText( FullName, text, encoding ?? SysText.Encoding.UTF8 );
 	}
 
-	public void MoveTo( FilePath new_path_name ) //This is essentially 'Rename'
+	public void MoveTo( FilePath newPathName ) //This is essentially 'Rename'
 	{
 		if( !Exists ) //avoids a huge timeout penalty if this is a network path and the network is inaccessible.
 			throw new SysIo.FileNotFoundException( FullName );
-		SysIo.File.Move( FullName, new_path_name.FullName );
+		SysIo.File.Move( FullName, newPathName.FullName );
 	}
 
 	public void CopyTo( FilePath other )
@@ -170,7 +170,7 @@ public sealed class FilePath : FileSystemPath
 		}
 	}
 
-	public void Delete( int retry_count = 10 )
+	public void Delete( int retryCount = 10 )
 	{
 		for( int retry = 0;; retry++ )
 		{
@@ -181,9 +181,9 @@ public sealed class FilePath : FileSystemPath
 			}
 			catch( SharingViolationException )
 			{
-				if( retry < retry_count )
+				if( retry < retryCount )
 				{
-					Log.Info( $"Retry {retry + 1} of {retry_count} while {FullName} is in use..." );
+					Log.Info( $"Retry {retry + 1} of {retryCount} while {FullName} is in use..." );
 					SysThread.Thread.Sleep( 100 );
 					continue;
 				}
@@ -234,11 +234,11 @@ public sealed class FilePath : FileSystemPath
 
 	public SysIo.TextReader OpenText( SysText.Encoding? encoding = null )
 	{
-		SysIo.Stream file_stream = OpenBinary();
-		return new SysIo.StreamReader( file_stream, encoding ?? SysText.Encoding.UTF8 );
+		SysIo.Stream fileStream = OpenBinary();
+		return new SysIo.StreamReader( fileStream, encoding ?? SysText.Encoding.UTF8 );
 	}
 
-	private Sys.Exception map_exception( Sys.Exception exception, string operation_name )
+	private Sys.Exception map_exception( Sys.Exception exception, string operationName )
 	{
 		switch( exception )
 		{
@@ -252,16 +252,16 @@ public sealed class FilePath : FileSystemPath
 			case SysIo.InternalBufferOverflowException _:
 			case SysIo.InvalidDataException _:
 				break;
-			case SysIo.IOException io_exception:
+			case SysIo.IOException ioException:
 				// See https://www.hresult.info -- for example, https://www.hresult.info/FACILITY_WIN32/0x80070020
-				switch( unchecked((uint)io_exception.HResult) )
+				switch( unchecked((uint)ioException.HResult) )
 				{
 					// PEARL: both HResult 0x80000009 and HResult 0x80070005 map to ACCESS_DENIED.
-					case 0x80000009: return new AccessDeniedException( io_exception, this, operation_name );
+					case 0x80000009: return new AccessDeniedException( ioException, this, operationName );
 					case 0x80070005: //Facility 0x007 = WIN32, Code 0x0005 = ACCESS_DENIED
-						return new AccessDeniedException( io_exception, this, operation_name );
+						return new AccessDeniedException( ioException, this, operationName );
 					case 0x80070020: //Facility 0x007 = WIN32, Code 0x0020 = SHARING_VIOLATION
-						return new SharingViolationException( io_exception, this, operation_name );
+						return new SharingViolationException( ioException, this, operationName );
 					case 0x80070079: //The semaphore timeout period has expired
 						break;
 					case 0x800700e8: //The pipe is broken
@@ -273,18 +273,18 @@ public sealed class FilePath : FileSystemPath
 				}
 				break;
 		}
-		return new FilePathException( exception, this, operation_name );
+		return new FilePathException( exception, this, operationName );
 	}
 
-	public SysIo.TextWriter CreateText( bool create_directory_if_not_exist = false )
+	public SysIo.TextWriter CreateText( bool createDirectoryIfNotExist = false )
 	{
-		if( create_directory_if_not_exist )
+		if( createDirectoryIfNotExist )
 			Directory.CreateIfNotExist();
 		return SysIo.File.CreateText( FullName );
 	}
 
-	public void RenameTo( FilePath target_file_path )
+	public void RenameTo( FilePath targetFilePath )
 	{
-		SysIo.File.Move( FullName, target_file_path.FullName );
+		SysIo.File.Move( FullName, targetFilePath.FullName );
 	}
 }

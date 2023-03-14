@@ -168,34 +168,34 @@ public static class FrameworkHelpers
 	{
 		if( type.IsArray )
 		{
-			SysText.StringBuilder string_builder = new SysText.StringBuilder();
-			string_builder.Append( GetCSharpTypeName( NotNull( type.GetElementType() ) ) );
-			string_builder.Append( "[" );
+			SysText.StringBuilder stringBuilder = new SysText.StringBuilder();
+			stringBuilder.Append( GetCSharpTypeName( NotNull( type.GetElementType() ) ) );
+			stringBuilder.Append( "[" );
 			int rank = type.GetArrayRank();
 			Assert( rank >= 1 );
 			for( int i = 0; i < rank - 1; i++ )
-				string_builder.Append( "," );
-			string_builder.Append( "]" );
-			return string_builder.ToString();
+				stringBuilder.Append( "," );
+			stringBuilder.Append( "]" );
+			return stringBuilder.ToString();
 		}
 		else if( type.IsGenericType )
 		{
-			SysText.StringBuilder string_builder = new SysText.StringBuilder();
-			string_builder.Append( getBaseTypeName( type ) );
-			string_builder.Append( '<' );
-			string_builder.Append( type.GenericTypeArguments.Select( GetCSharpTypeName ).MakeString( "," ) );
-			string_builder.Append( '>' );
-			return string_builder.ToString();
+			SysText.StringBuilder stringBuilder = new SysText.StringBuilder();
+			stringBuilder.Append( getBaseTypeName( type ) );
+			stringBuilder.Append( '<' );
+			stringBuilder.Append( type.GenericTypeArguments.Select( GetCSharpTypeName ).MakeString( "," ) );
+			stringBuilder.Append( '>' );
+			return stringBuilder.ToString();
 		}
 		else
 			return type.Namespace + '.' + type.Name.Replace( '+', '.' );
 
 		static string getBaseTypeName( Sys.Type type )
 		{
-			string type_name = NotNull( type.GetGenericTypeDefinition().FullName );
-			int index_of_tick = type_name.LastIndexOf( '`' );
-			Assert( index_of_tick == type_name.IndexOf( '`' ) );
-			return type_name.Substring( 0, index_of_tick );
+			string typeName = NotNull( type.GetGenericTypeDefinition().FullName );
+			int indexOfTick = typeName.LastIndexOf( '`' );
+			Assert( indexOfTick == typeName.IndexOf( '`' ) );
+			return typeName.Substring( 0, indexOfTick );
 		}
 	}
 

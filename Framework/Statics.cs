@@ -26,7 +26,7 @@ public static class Statics
 #if DEBUG
 			return true;
 #else
-				return false;
+			return false;
 #endif
 		}
 	}
@@ -38,24 +38,23 @@ public static class Statics
 	public static T Get<T>( T value ) => value;
 
 	[SysDiag.DebuggerHidden, SysDiag.Conditional( "DEBUG" )]
-	public static void Assert( [SysCodeAnalysis.DoesNotReturnIf( false )] bool condition, //
-			[SysCompiler.CallerFilePath]
-			string source_file_name = "", [SysCompiler.CallerLineNumber] int source_line_number = 0 )
-		=> Assert( condition, null, null, source_file_name, source_line_number );
+	public static void Assert( [SysCodeAnalysis.DoesNotReturnIf( false )] bool condition, [SysCompiler.CallerFilePath] string sourceFileName = "", [SysCompiler.CallerLineNumber] int sourceLineNumber = 0 ) //
+		=> Assert( condition, null, null, sourceFileName, sourceLineNumber );
 
 	[SysDiag.DebuggerHidden, SysDiag.Conditional( "DEBUG" )]
-	public static void Assert( [SysCodeAnalysis.DoesNotReturnIf( false )] bool condition, Function<Sys.Exception> exception_factory, [SysCompiler.CallerFilePath] string source_file_name = "", [SysCompiler.CallerLineNumber] int source_line_number = 0 ) => Assert( condition, null, exception_factory, source_file_name, source_line_number );
+	public static void Assert( [SysCodeAnalysis.DoesNotReturnIf( false )] bool condition, Function<Sys.Exception> exceptionFactory, [SysCompiler.CallerFilePath] string sourceFileName = "", [SysCompiler.CallerLineNumber] int sourceLineNumber = 0 ) //
+		=> Assert( condition, null, exceptionFactory, sourceFileName, sourceLineNumber );
 
 	/// <summary>Checks the supplied 'condition' boolean and throws an <see cref="Sys.Exception" /> if <c>false</c></summary>
 	[SysDiag.DebuggerHidden]
-	public static void Assert( bool condition, object? expression, Function<Sys.Exception>? converter, [SysCompiler.CallerFilePath] string source_file_name = "", [SysCompiler.CallerLineNumber] int source_line_number = 0 )
+	public static void Assert( bool condition, object? expression, Function<Sys.Exception>? converter, [SysCompiler.CallerFilePath] string sourceFileName = "", [SysCompiler.CallerLineNumber] int sourceLineNumber = 0 )
 	{
 		if( condition )
 			return;
 		string message = "" + expression;
 		if( !FailureTesting.Value )
 		{
-			Log.Error( $"Assertion failed{(message == "" ? "" : ": " + message)}", source_file_name, source_line_number );
+			Log.Error( $"Assertion failed{(message == "" ? "" : ": " + message)}", sourceFileName, sourceLineNumber );
 			if( Breakpoint() )
 				return;
 		}
@@ -66,33 +65,27 @@ public static class Statics
 	}
 
 	[SysDiag.DebuggerHidden]
-	public static T NotNull<T>( T? pointer, //
-			[SysCompiler.CallerFilePath]
-			string source_file_name = "", [SysCompiler.CallerLineNumber] int source_line_number = 0 ) //
-			where T : class
-		=> NotNull0( pointer, source_file_name, source_line_number );
+	public static T NotNull<T>( T? pointer, [SysCompiler.CallerFilePath] string sourceFileName = "", [SysCompiler.CallerLineNumber] int sourceLineNumber = 0 ) where T : class //
+		=> NotNull0( pointer, sourceFileName, sourceLineNumber );
 
 	[SysDiag.DebuggerHidden]
-	public static T NotNull<T>( T? nullable_value, //
-			[SysCompiler.CallerFilePath]
-			string source_file_name = "", [SysCompiler.CallerLineNumber] int source_line_number = 0 ) //
-			where T : struct
-		=> NotNull0( nullable_value, source_file_name, source_line_number );
+	public static T NotNull<T>( T? nullableValue, [SysCompiler.CallerFilePath] string sourceFileName = "", [SysCompiler.CallerLineNumber] int sourceLineNumber = 0 ) where T : struct //
+		=> NotNull0( nullableValue, sourceFileName, sourceLineNumber );
 
 	/// <summary>Returns the supplied pointer unchanged, while asserting that it is non-null.</summary>
 	[SysDiag.DebuggerHidden]
-	public static T NotNull0<T>( T? pointer, string source_file_name, int source_line_number ) where T : class
+	public static T NotNull0<T>( T? pointer, string sourceFileName, int sourceLineNumber ) where T : class
 	{
-		Assert( pointer != null, source_file_name, source_line_number );
+		Assert( pointer != null, sourceFileName, sourceLineNumber );
 		return pointer;
 	}
 
 	/// <summary>Converts a nullable value to non-nullable, while asserting that it is non-null.</summary>
 	[SysDiag.DebuggerHidden]
-	public static T NotNull0<T>( T? nullable_value, string source_file_name, int source_line_number ) where T : struct
+	public static T NotNull0<T>( T? nullableValue, string sourceFileName, int sourceLineNumber ) where T : struct
 	{
-		Assert( nullable_value.HasValue, source_file_name, source_line_number );
-		return nullable_value.Value;
+		Assert( nullableValue.HasValue, sourceFileName, sourceLineNumber );
+		return nullableValue.Value;
 	}
 
 	/// <summary>If a debugger is attached, hits a breakpoint and returns <c>true</c>; otherwise, returns <c>false</c></summary>
@@ -107,11 +100,11 @@ public static class Statics
 		return false;
 	}
 
-	public static Sys.Exception NewInvalidArgumentException<T>( string argument_name, T argument_value, string? additional_message = null )
+	public static Sys.Exception NewInvalidArgumentException<T>( string argumentName, T argumentValue, string? additionalMessage = null )
 	{
-		var type_string = FrameworkHelpers.GetCSharpTypeName( typeof(T) );
-		var value_string = FrameworkHelpers.SafeToString( argument_value );
-		string message = $"Invalid argument '{argument_name}': type={type_string} value={value_string} {additional_message}";
+		string typeString = FrameworkHelpers.GetCSharpTypeName( typeof(T) );
+		string valueString = FrameworkHelpers.SafeToString( argumentValue );
+		string message = $"Invalid argument '{argumentName}': type={typeString} value={valueString} {additionalMessage}";
 		var result = new Sys.Exception( message );
 		Assert( false, message );
 		return result;
@@ -123,12 +116,12 @@ public static class Statics
 
 	///<summary>Compares two `double` values.</summary>
 	//TODO: perhaps replace with something more sophisticated, like this: https://stackoverflow.com/a/3875619/773113
-	public static bool DoubleEquals( double a, double b, double? maybe_tolerance = null )
+	public static bool DoubleEquals( double a, double b, double? maybeTolerance = null )
 	{
 		if( double.IsNaN( a ) && double.IsNaN( b ) )
 			return true;
 		double difference = Math.Abs( a - b );
-		double tolerance = maybe_tolerance ?? Epsilon;
+		double tolerance = maybeTolerance ?? Epsilon;
 		return difference < tolerance;
 	}
 
@@ -142,12 +135,12 @@ public static class Statics
 
 	///<summary>Compares two `double` values, using a specific tolerance.</summary>
 	//TODO: perhaps replace with something more sophisticated, like this: https://stackoverflow.com/a/3875619/773113
-	public static bool FloatEquals( float a, float b, float? maybe_tolerance = null )
+	public static bool FloatEquals( float a, float b, float? maybeTolerance = null )
 	{
 		if( float.IsNaN( a ) && float.IsNaN( b ) )
 			return true;
 		float difference = Math.Abs( a - b );
-		float tolerance = maybe_tolerance ?? FEpsilon;
+		float tolerance = maybeTolerance ?? FEpsilon;
 		return difference < tolerance;
 	}
 

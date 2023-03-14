@@ -33,7 +33,7 @@ The idea behind VsDebugLogger is that we do all of our logging into a text file,
 
 # How to use VsDebugLogger
 
-VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds. If omitted, the default is 1.0 second.
+VsDebugLogger accepts one command-line parameter, which is a floating-point number representing the amount of time to wait between polls, in seconds. If omitted, the default is 200 milliseconds.
 
 Add the following function to your application:
 ```csharp

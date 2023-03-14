@@ -45,7 +45,7 @@ namespace Framework
 			const int maxRetries = 10;
 			Sys.DateTime startTime = Sys.DateTime.UtcNow;
 			long startMemory = GetProcessPrivateMemory();
-			int retries = performGarbageCollection( maxRetries );
+			int retries = perform_garbage_collection( maxRetries );
 			long memoryDifference = startMemory - GetProcessPrivateMemory();
 			Sys.TimeSpan duration = Sys.DateTime.UtcNow - startTime;
 			Log.Debug( $"Garbage collection completed after {retries} retries, {duration.TotalSeconds:F2} seconds; {Math.Abs( memoryDifference )} {(memoryDifference < 0 ? "lost" : "reclaimed")}." );
@@ -60,9 +60,9 @@ namespace Framework
 
 		private static object garbageCollectedObject = new object();
 
-		private static int performGarbageCollection( int retryCount )
+		private static int perform_garbage_collection( int retryCount )
 		{
-			Sys.WeakReference reference = createWeakReference();
+			Sys.WeakReference reference = create_weak_reference();
 			for( int retry = 0;; retry++ )
 			{
 				Sys.GC.Collect( 0xffff, Sys.GCCollectionMode.Forced, true );
@@ -72,7 +72,7 @@ namespace Framework
 			}
 		}
 
-		private static Sys.WeakReference createWeakReference()
+		private static Sys.WeakReference create_weak_reference()
 		{
 			if( True )
 			{
@@ -117,9 +117,9 @@ namespace Framework
 
 		private static string? mainModuleName;
 
-		public static string MainModuleName => mainModuleName ??= getMainModuleName();
+		public static string MainModuleName => mainModuleName ??= get_main_module_name();
 
-		private static string getMainModuleName()
+		private static string get_main_module_name()
 		{
 			string mainModuleName = NotNull( SysDiag.Process.GetCurrentProcess().MainModule ).ModuleName;
 			const string exeExtension = ".exe";
@@ -133,9 +133,9 @@ namespace Framework
 		public static DirectoryPath UserDocumentsFolder => DirectoryPath.FromAbsolutePath( Sys.Environment.GetFolderPath( Sys.Environment.SpecialFolder.MyDocuments ) );
 
 		///<summary>Returns something like C:\Users\(UserName)\AppData\Local\(ApplicationName)</summary>
-		public static DirectoryPath UserAppDataLocalApplicationFolder => applicationLocalAppDataFolder ??= getApplicationLocalAppDataFolder();
+		public static DirectoryPath UserAppDataLocalApplicationFolder => applicationLocalAppDataFolder ??= get_application_local_app_data_folder();
 
-		private static DirectoryPath getApplicationLocalAppDataFolder()
+		private static DirectoryPath get_application_local_app_data_folder()
 		{
 			DirectoryPath localAppDataFolder = DirectoryPath.FromAbsolutePath( Sys.Environment.GetFolderPath( Sys.Environment.SpecialFolder.LocalApplicationData ) );
 			DirectoryPath applicationLocalAppDataFolder = localAppDataFolder.SubDirectory( MainModuleName );
@@ -246,7 +246,7 @@ namespace Framework
 			if( a is Legacy.IEnumerable enumerableA && b is Legacy.IEnumerable enumerableB )
 				return legacyEnumerablesEqual( enumerableA, enumerableB );
 			Sys.Type type = a.GetType();
-			if( DebugMode && !OverridesEqualsMethod( type ) )
+			if( DebugMode && !overridesEqualsMethod( type ) )
 			{
 				lock( reportedTypes )
 				{
@@ -259,7 +259,7 @@ namespace Framework
 			}
 			return a.Equals( b );
 
-			static bool OverridesEqualsMethod( Sys.Type type )
+			static bool overridesEqualsMethod( Sys.Type type )
 			{
 				SysReflect.MethodInfo equalsMethod = type.GetMethods( SysReflect.BindingFlags.Instance | SysReflect.BindingFlags.Public ) //
 						.Single( m => m.Name == "Equals" && m.GetBaseDefinition().DeclaringType == typeof(object) );
@@ -710,12 +710,12 @@ namespace Framework
 			if( double.IsNegativeInfinity( value ) )
 				return currentInfo.NegativeInfinitySymbol;
 
-			var roundedValue = roundSignificantDigits( value, significantDigits, out _ );
+			var roundedValue = round_significant_digits( value, significantDigits, out _ );
 
 			// when rounding causes a cascading round affecting digits of greater significance, 
 			// need to re-round to get a correct rounding position afterwards
 			// this fixes a bug where rounding 9.96 to 2 figures yields 10.0 instead of 10
-			roundSignificantDigits( roundedValue, significantDigits, out int roundingPosition );
+			round_significant_digits( roundedValue, significantDigits, out int roundingPosition );
 
 			if( Math.Abs( roundingPosition ) > 9 )
 			{
@@ -731,7 +731,7 @@ namespace Framework
 			// ReSharper restore FormatStringProblem
 		}
 
-		private static double roundSignificantDigits( double value, int significantDigits, out int roundingPosition )
+		private static double round_significant_digits( double value, int significantDigits, out int roundingPosition )
 		{
 			// this method will return a rounded double value at a number of significant figures.
 			// the sigFigures parameter must be between 0 and 15, exclusive.
@@ -774,7 +774,7 @@ namespace Framework
 
 		public static double Round( double value, int significantDigits )
 		{
-			return roundSignificantDigits( value, significantDigits, out _ );
+			return round_significant_digits( value, significantDigits, out _ );
 		}
 
 		///Tries to find an argument by prefix in the given list of arguments, extracts it from the list, and returns the remainder after the prefix. Returns `null` if not found.
@@ -828,12 +828,12 @@ namespace Framework
 			string? argument = TryExtractOption( args, prefix );
 			if( argument == null )
 				return false;
-			return parseBool( argument );
+			return parse_bool( argument );
 		}
 
 		// PEARL: When `bool.Parse( string )` throws a System.FormatException it says "String was not recognized as a valid
 		// Boolean" BUT IT DOES NOT SAY WHAT THE STRING WAS. The following method corrects this imbecility.
-		private static bool parseBool( string argument )
+		private static bool parse_bool( string argument )
 		{
 			if( bool.TryParse( argument, out bool result ) )
 				return result;

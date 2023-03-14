@@ -12,11 +12,11 @@ public static class FrameworkExtensions
 
 	public static string MakeString<T>( this IEnumerable<T> self, string delimiter = "" ) => self.MakeString( "", delimiter, "", "" );
 
-	public static string MakeString<T>( this IEnumerable<T> self, string prefix, string delimiter, string suffix, string if_empty )
+	public static string MakeString<T>( this IEnumerable<T> self, string prefix, string delimiter, string suffix, string ifEmpty )
 	{
-		var string_builder = new SysText.StringBuilder();
-		string_builder.AppendEnumerable( self, prefix, delimiter, suffix, if_empty );
-		return string_builder.ToString();
+		var stringBuilder = new SysText.StringBuilder();
+		stringBuilder.AppendEnumerable( self, prefix, delimiter, suffix, ifEmpty );
+		return stringBuilder.ToString();
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,11 +55,11 @@ public static class FrameworkExtensions
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// StringBuilder
 
-	public static void AppendEnumerable<T>( this SysText.StringBuilder self, IEnumerable<T> enumerable, string prefix, string delimiter, string suffix, string if_empty )
+	public static void AppendEnumerable<T>( this SysText.StringBuilder self, IEnumerable<T> enumerable, string prefix, string delimiter, string suffix, string ifEmpty )
 	{
 		bool first = true;
-		IList<T> self_as_list = enumerable.ToImmutableList();
-		foreach( T element in self_as_list )
+		IList<T> selfAsList = enumerable.ToImmutableList();
+		foreach( T element in selfAsList )
 		{
 			if( first )
 			{
@@ -70,6 +70,6 @@ public static class FrameworkExtensions
 				self.Append( delimiter );
 			self.Append( element );
 		}
-		self.Append( first ? if_empty : suffix );
+		self.Append( first ? ifEmpty : suffix );
 	}
 }

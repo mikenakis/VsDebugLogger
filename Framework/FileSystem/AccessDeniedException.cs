@@ -10,7 +10,7 @@ using System.IO;
 //   - Trying to write a read-only file. (This is not a permissions error, it is a "file is not even writable" error.)
 public class AccessDeniedException : FilePathException
 {
-	public AccessDeniedException( IOException inner_exception, FilePath file_path, string operation_name )
-			: base( inner_exception, file_path, operation_name )
+	public AccessDeniedException( IOException innerException, FilePath filePath, string operationName )
+			: base( innerException, filePath, operationName )
 	{ }
 }

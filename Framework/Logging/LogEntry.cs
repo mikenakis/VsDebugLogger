@@ -11,13 +11,13 @@
 		public string SourceFileName { get; }
 		public int SourceLineNumber { get; }
 
-		public LogEntry( LogLevel level, Sys.DateTime utc, string message, string source_file_name, int source_line_number )
+		public LogEntry( LogLevel level, Sys.DateTime utc, string message, string sourceFileName, int sourceLineNumber )
 		{
 			Level = level;
 			Utc = utc;
 			Message = message;
-			SourceFileName = source_file_name;
-			SourceLineNumber = source_line_number;
+			SourceFileName = sourceFileName;
+			SourceLineNumber = sourceLineNumber;
 		}
 
 		public override string ToString()

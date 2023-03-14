@@ -19,6 +19,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Framework\**" />
+	  <EmbeddedResource Remove="Framework\**" />
+	  <None Remove="Framework\**" />
+	  <Page Remove="Framework\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Compile Remove="GlobalExtensions.cs" />
 	</ItemGroup>
 
@@ -53,10 +60,6 @@
 			<Generator>SettingsSingleFileGenerator</Generator>
 			<LastGenOutput>Settings.Designer.cs</LastGenOutput>
 		</None>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Framework\" />
 	</ItemGroup>
 
 	<ItemGroup>

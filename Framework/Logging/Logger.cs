@@ -1,6 +1,6 @@
 ﻿namespace Framework.Logging;
 
-public delegate void Logger( LogEntry log_entry );
+public delegate void Logger( LogEntry logEntry );
 
 public static class GlobalLogger
 {

@@ -6,7 +6,7 @@ using SysIoPipes = SysIo.Pipes;
 internal sealed class NamedPipeServer : Sys.IDisposable
 {
 	public const int MaxInstanceCount = 10;
-	private static readonly string pipe_name = DotNetHelpers.MainModuleName;
+	private static readonly string pipeName = DotNetHelpers.MainModuleName;
 
 	public delegate Session SessionFactory( string verb, List<string> parameters );
 
@@ -17,100 +17,112 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 
 	public static bool IsAlreadyRunning()
 	{
-		SysIoPipes.NamedPipeServerStream named_pipe_server;
+		SysIoPipes.NamedPipeServerStream namedPipeServer;
 		try
 		{
-			named_pipe_server = new SysIoPipes.NamedPipeServerStream( pipe_name, SysIoPipes.PipeDirection.InOut, MaxInstanceCount );
+			namedPipeServer = new SysIoPipes.NamedPipeServerStream( pipeName, SysIoPipes.PipeDirection.InOut, MaxInstanceCount );
 		}
-		catch( SysIo.IOException io_exception ) when( unchecked((uint)io_exception.HResult) == 0x800700E7 ) //"All pipe instances are busy"
+		catch( SysIo.IOException ioException ) when( unchecked((uint)ioException.HResult) == 0x800700E7 ) //"All pipe instances are busy"
 		{
 			return true;
 		}
-		named_pipe_server.Dispose();
+		namedPipeServer.Dispose();
 		return false;
 	}
 
-	public static NamedPipeServer Create( SessionFactory session_factory )
+	public static NamedPipeServer Create( SessionFactory sessionFactory )
 	{
-		List<SysTasks.Task> tasks = new();
-		for( int i = 0; i < MaxInstanceCount; i++ )
-		{
-			SysTasks.Task task = run_named_pipe_server( i, pipe_name, session_factory );
-			tasks.Add( task );
-		}
-		return new NamedPipeServer( tasks );
+		return new NamedPipeServer( sessionFactory );
 	}
 
-	private readonly LifeGuard life_guard = LifeGuard.Create( true );
+	private readonly StatefulLifeGuard lifeGuard = StatefulLifeGuard.Create( true );
 
 	// ReSharper disable once CollectionNeverQueried.Local
-	private readonly List<SysTasks.Task> tasks;
+	private readonly List<SysTasks.Task> tasks = new();
 
-	private NamedPipeServer( List<SysTasks.Task> tasks )
+	private NamedPipeServer( SessionFactory sessionFactory )
 	{
-		this.tasks = tasks;
-		Log.Info( $"Named pipe server '{pipe_name}' is running." );
+		for( int i = 0; i < MaxInstanceCount; i++ )
+		{
+			SysTasks.Task task = run_named_pipe_server( i, pipeName, sessionFactory, () => !lifeGuard.IsAlive );
+			tasks.Add( task );
+		}
+		Log.Info( $"Named pipe server '{pipeName}' is running." );
 	}
 
-	private static async SysTasks.Task run_named_pipe_server( int instance_number, string pipe_name, SessionFactory session_factory )
+	private static async SysTasks.Task run_named_pipe_server( int instanceNumber, string pipeName, SessionFactory sessionFactory, Function<bool> quit )
 	{
 		try
 		{
 			for( ;; )
 			{
-				SysIoPipes.NamedPipeServerStream named_pipe_server = new SysIoPipes.NamedPipeServerStream( pipe_name, SysIoPipes.PipeDirection.InOut, MaxInstanceCount );
-				Log.Debug( $"instance {instance_number} NamedPipeServer waiting for a session..." );
-				await named_pipe_server.WaitForConnectionAsync();
-				Log.Debug( $"instance {instance_number} NamedPipeServer session established." );
+				SysIoPipes.NamedPipeServerStream namedPipeServer = new SysIoPipes.NamedPipeServerStream( pipeName, SysIoPipes.PipeDirection.InOut, MaxInstanceCount );
+				Log.Debug( $"instance {instanceNumber} NamedPipeServer waiting for a session..." );
+				await namedPipeServer.WaitForConnectionAsync();
+				if( quit.Invoke() )
+				{
+					Log.Debug( $"instance {instanceNumber} Quits." );
+					break;
+				}
+				Log.Debug( $"instance {instanceNumber} NamedPipeServer session established." );
 				try
 				{
 					// SysIo.StreamWriter writer = new SysIo.StreamWriter( named_pipe_server );
 					// writer.AutoFlush = true;
-					using( SysIo.StreamReader reader = new SysIo.StreamReader( named_pipe_server ) )
+					using( SysIo.StreamReader reader = new SysIo.StreamReader( namedPipeServer ) )
 					{
-						string? first_line = await reader.ReadLineAsync();
-						if( first_line == null )
+						string? firstLine = await reader.ReadLineAsync();
+						if( firstLine == null )
 							throw new Sys.ApplicationException( "Nothing received" );
-						Log.Debug( $"instance {instance_number} Session: first_line: {first_line}" );
-						string[] parts = first_line.Split( " ", Sys.StringSplitOptions.RemoveEmptyEntries | Sys.StringSplitOptions.TrimEntries );
+						Log.Debug( $"instance {instanceNumber} Session: first_line: {firstLine}" );
+						string[] parts = firstLine.Split( " ", Sys.StringSplitOptions.RemoveEmptyEntries | Sys.StringSplitOptions.TrimEntries );
 						if( parts.Length < 1 )
 							throw new Sys.ApplicationException( "Malformed request" );
 						string verb = parts[0];
 						List<string> parameters = parts.Skip( 1 ).ToList();
-						await using( Session session = session_factory.Invoke( verb, parameters ) )
+						await using( Session session = sessionFactory.Invoke( verb, parameters ) )
 						{
 							for( ;; )
 							{
 								string? line = await reader.ReadLineAsync();
 								if( line == null )
 									break;
-								Log.Debug( $"instance {instance_number} Session: {line}" );
+								Log.Debug( $"instance {instanceNumber} Session: {line}" );
 								session.LineReceived( line );
 							}
-							Log.Debug( $"instance {instance_number} Session: end-of-stream" );
+							Log.Debug( $"instance {instanceNumber} Session: end-of-stream" );
 						}
 					}
 				}
 				catch( Sys.Exception exception )
 				{
-					Log.Error( $"instance {instance_number} Session failed", exception );
+					Log.Error( $"instance {instanceNumber} Session failed", exception );
 				}
-				Log.Debug( $"instance {instance_number} NamedPipeServer session ended." );
-				await named_pipe_server.DisposeAsync();
+				Log.Debug( $"instance {instanceNumber} NamedPipeServer session ended." );
+				await namedPipeServer.DisposeAsync();
 			}
 		}
 		catch( Sys.Exception exception )
 		{
-			Log.Error( $"instance {instance_number} Server failed", exception );
+			Log.Error( $"instance {instanceNumber} Server failed", exception );
 		}
 		// ReSharper disable once FunctionNeverReturns
 	}
 
 	public void Dispose()
 	{
-		life_guard.Dispose();
-		foreach( var task in tasks )
-			task.Dispose(); //does this cancel tasks?
-			//named_pipe_server.Dispose();
+		lifeGuard.Dispose();
+
+		// the following does not work, I am not sure why.
+		if( False )
+		{
+			// create one fake client connection per server instance so as to make each server instance move past `WaitForConnection()`
+			for( int i = 0; i < MaxInstanceCount; i++ )
+				using( SysIoPipes.NamedPipeClientStream namedPipeClientStream = new SysIoPipes.NamedPipeClientStream( pipeName ) )
+					namedPipeClientStream.Connect( 100 );
+		}
+		// the following cannot be done because it throws.
+		// foreach( var task in tasks )
+		// 	task.Dispose();
 	}
 }

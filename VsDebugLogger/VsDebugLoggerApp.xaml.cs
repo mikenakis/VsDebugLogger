@@ -25,16 +25,16 @@ public partial class VsDebugLoggerApp //: Wpf.Application
 			};
 	}
 
-	private TheApp? the_app;
+	private TheApp? theApp;
 
-	protected override void OnStartup( Wpf.StartupEventArgs startup_event_args )
+	protected override void OnStartup( Wpf.StartupEventArgs startupEventArgs )
 	{
-		base.OnStartup( startup_event_args );
+		base.OnStartup( startupEventArgs );
 
-		Assert( the_app == null );
+		Assert( theApp == null );
 		try
 		{
-			the_app = TheApp.Create( startup_event_args.Args );
+			theApp = TheApp.Create( startupEventArgs.Args );
 		}
 		catch( Sys.ApplicationException exception )
 		{
@@ -48,10 +48,10 @@ public partial class VsDebugLoggerApp //: Wpf.Application
 		}
 	}
 
-	protected override void OnExit( Wpf.ExitEventArgs exit_event_args )
+	protected override void OnExit( Wpf.ExitEventArgs exitEventArgs )
 	{
-		the_app?.Dispose();
-		the_app = null;
+		theApp?.Dispose();
+		theApp = null;
 		if( DebugMode )
 			DotNetHelpers.PerformGarbageCollection();
 	}
@@ -59,73 +59,73 @@ public partial class VsDebugLoggerApp //: Wpf.Application
 
 public class TheApp : Sys.IDisposable
 {
-	public static TheApp Create( string[] command_line_arguments )
+	public static TheApp Create( string[] commandLineArguments )
 	{
 		if( NamedPipeServer.IsAlreadyRunning() )
 		{
 			bring_other_instance_to_foreground();
 			throw new AlreadyRunningApplicationException();
 		}
-		return new TheApp( command_line_arguments );
+		return new TheApp( commandLineArguments );
 	}
 
-	private static readonly Sys.TimeSpan default_interval = Sys.TimeSpan.FromSeconds( 1.0 );
-	private readonly LifeGuard life_guard = LifeGuard.Create();
-	private readonly NamedPipeServer named_pipe_server;
+	private static readonly Sys.TimeSpan defaultInterval = Sys.TimeSpan.FromSeconds( 0.2 );
+	private readonly LifeGuard lifeGuard = LifeGuard.Create();
+	private readonly NamedPipeServer namedPipeServer;
 
 	//PEARL: by default, WPF DispatcherTimer runs at background priority. If you want normal priority, you have to explicitly specify it.
-	private readonly WpfThread.DispatcherTimer wpf_timer;
+	private readonly WpfThread.DispatcherTimer wpfTimer;
 
-	private TheApp( string[] command_line_arguments )
+	private TheApp( string[] commandLineArguments )
 	{
 		Wpf.Application.Current.MainWindow = new VsDebugLoggerMainWindow();
 		Wpf.Application.Current.MainWindow.Show();
 
-		named_pipe_server = NamedPipeServer.Create( new_session_handler );
+		namedPipeServer = NamedPipeServer.Create( new_session_handler );
 
-		CommandlineArgumentParser commandline_argument_parser = new CommandlineArgumentParser( command_line_arguments );
+		CommandlineArgumentParser commandlineArgumentParser = new CommandlineArgumentParser( commandLineArguments );
 
-		string interval_as_string = commandline_argument_parser.ExtractOption( "interval", default_interval.TotalSeconds.ToString( SysGlob.CultureInfo.InvariantCulture ) );
+		string intervalAsString = commandlineArgumentParser.ExtractOption( "interval", defaultInterval.TotalSeconds.ToString( SysGlob.CultureInfo.InvariantCulture ) );
 		const SysGlob.NumberStyles options = SysGlob.NumberStyles.Float | SysGlob.NumberStyles.AllowExponent | SysGlob.NumberStyles.AllowDecimalPoint;
-		if( !double.TryParse( interval_as_string, options, SysGlob.NumberFormatInfo.InvariantInfo, out double interval_as_seconds ) )
-			throw new Sys.ApplicationException( $"Expected a (fractional) number of seconds, got '{interval_as_string}'." );
-		Sys.TimeSpan interval = Sys.TimeSpan.FromSeconds( interval_as_seconds );
+		if( !double.TryParse( intervalAsString, options, SysGlob.NumberFormatInfo.InvariantInfo, out double intervalAsSeconds ) )
+			throw new Sys.ApplicationException( $"Expected a (fractional) number of seconds, got '{intervalAsString}'." );
+		Sys.TimeSpan interval = Sys.TimeSpan.FromSeconds( intervalAsSeconds );
 		Log.Info( $"Polling every {interval.TotalSeconds} seconds" );
 
-		if( commandline_argument_parser.NonEmpty )
-			Log.Warn( $"Superfluous command line arguments: {commandline_argument_parser.AllRemainingArguments}" );
+		if( commandlineArgumentParser.NonEmpty )
+			Log.Warn( $"Superfluous command line arguments: {commandlineArgumentParser.AllRemainingArguments}" );
 
-		wpf_timer = new WpfThread.DispatcherTimer( WpfThread.DispatcherPriority.Normal );
-		wpf_timer.Interval = interval;
-		wpf_timer.Tick += on_timer_tick;
-		wpf_timer.Start();
+		wpfTimer = new WpfThread.DispatcherTimer( WpfThread.DispatcherPriority.Normal );
+		wpfTimer.Interval = interval;
+		wpfTimer.Tick += on_timer_tick;
+		wpfTimer.Start();
 	}
 
 	public void Dispose()
 	{
-		life_guard.Dispose();
-		named_pipe_server.Dispose();
+		lifeGuard.Dispose();
+		namedPipeServer.Dispose();
 	}
 
 	private NamedPipeServer.Session new_session_handler( string verb, List<string> parameters )
 	{
 		return verb switch
-		{
-			"Activate" => new ActivationSession( this, parameters ),
-			"LogFile" => LogFileSession.Create( this, parameters ),
-			_ => throw new Sys.ApplicationException( $"Unknown verb: {verb}" )
-		};
+			{
+				"Activate" => new ActivationSession( this, parameters ),
+				"LogFile" => LogFileSession.Create( this, parameters ),
+				_ => throw new Sys.ApplicationException( $"Unknown verb: {verb}" )
+			};
 	}
 
 	private void on_timer_tick( object? sender, Sys.EventArgs e )
 	{
-		Assert( sender == wpf_timer );
-		Assert( wpf_timer.IsEnabled );
+		Assert( sender == wpfTimer );
+		Assert( wpfTimer.IsEnabled );
 
 		try
 		{
-			foreach( var session_handler in session_handlers )
-				session_handler.Tick();
+			foreach( var sessionHandler in sessionHandlers )
+				sessionHandler.Tick();
 		}
 		catch( Sys.Exception exception )
 		{
@@ -135,35 +135,35 @@ public class TheApp : Sys.IDisposable
 
 	private static void bring_other_instance_to_foreground()
 	{
-		using( var named_pipe_client_stream = new SysIoPipes.NamedPipeClientStream( ".", "VsDebugLogger", SysIoPipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None ) )
+		using( var namedPipeClientStream = new SysIoPipes.NamedPipeClientStream( ".", "VsDebugLogger", SysIoPipes.PipeDirection.InOut, SysIoPipes.PipeOptions.None ) )
 		{
-			named_pipe_client_stream.Connect( 1000 );
-			SysIo.StreamWriter writer = new SysIo.StreamWriter( named_pipe_client_stream );
+			namedPipeClientStream.Connect( 1000 );
+			SysIo.StreamWriter writer = new SysIo.StreamWriter( namedPipeClientStream );
 			writer.WriteLine( "Activate" );
 			writer.Flush();
 		}
 	}
 
-	private readonly List<MySession> session_handlers = new();
+	private readonly List<MySession> sessionHandlers = new();
 
-	internal void AddSession( MySession my_session )
+	internal void AddSession( MySession mySession )
 	{
-		session_handlers.Add( my_session );
+		sessionHandlers.Add( mySession );
 	}
 
-	internal void RemoveSession( MySession my_session )
+	internal void RemoveSession( MySession mySession )
 	{
-		session_handlers.DoRemove( my_session );
+		sessionHandlers.DoRemove( mySession );
 	}
 
 	internal abstract class MySession : NamedPipeServer.Session
 	{
 		protected readonly TheApp TheApp;
 
-		protected MySession( TheApp the_app )
+		protected MySession( TheApp theApp )
 		{
-			TheApp = the_app;
-			the_app.AddSession( this );
+			TheApp = theApp;
+			theApp.AddSession( this );
 		}
 
 		public abstract void LineReceived( string line );
@@ -179,8 +179,8 @@ public class TheApp : Sys.IDisposable
 
 	internal sealed class ActivationSession : MySession
 	{
-		public ActivationSession( TheApp the_app, List<string> parameters )
-				: base( the_app )
+		public ActivationSession( TheApp theApp, List<string> parameters )
+				: base( theApp )
 		{
 			if( parameters.Count != 0 )
 				Log.Debug( $"Unexpected parameters received: {parameters.MakeString( " " )}" );
@@ -200,33 +200,33 @@ public class TheApp : Sys.IDisposable
 
 	internal sealed class LogFileSession : MySession
 	{
-		public static LogFileSession Create( TheApp the_app, List<string> parameters )
+		public static LogFileSession Create( TheApp theApp, List<string> parameters )
 		{
-			CommandlineArgumentParser commandline_argument_parser = new CommandlineArgumentParser( parameters );
-			bool skip_existing = commandline_argument_parser.ExtractSwitch( "skip_existing" );
-			string file_path_as_string = commandline_argument_parser.ExtractOption( "file" );
-			if( !SysIo.Path.IsPathFullyQualified( file_path_as_string ) )
-				throw new Sys.ApplicationException( $"Expected a fully qualified pathname, got '{file_path_as_string}'." );
-			FilePath file_path = FilePath.FromAbsolutePath( file_path_as_string );
-			string solution_name = commandline_argument_parser.ExtractOption( "solution", "" );
-			return new LogFileSession( the_app, file_path, solution_name, skip_existing );
+			CommandlineArgumentParser commandlineArgumentParser = new CommandlineArgumentParser( parameters );
+			bool skipExisting = commandlineArgumentParser.ExtractSwitch( "skip_existing" );
+			string filePathAsString = commandlineArgumentParser.ExtractOption( "file" );
+			if( !SysIo.Path.IsPathFullyQualified( filePathAsString ) )
+				throw new Sys.ApplicationException( $"Expected a fully qualified pathname, got '{filePathAsString}'." );
+			FilePath filePath = FilePath.FromAbsolutePath( filePathAsString );
+			string solutionName = commandlineArgumentParser.ExtractOption( "solution", "" );
+			return new LogFileSession( theApp, filePath, solutionName, skipExisting );
 		}
 
-		private readonly ResilientVsDebugProxy debug_pane;
-		private readonly ResilientInputStream resilient_input_stream;
-		private readonly FilePath file_path;
-		private readonly string solution_name;
+		private readonly ResilientVsDebugProxy debugPane;
+		private readonly ResilientInputStream resilientInputStream;
+		private readonly FilePath filePath;
+		private readonly string solutionName;
 
-		private LogFileSession( TheApp the_app, FilePath file_path, string solution_name, bool skip_existing )
-				: base( the_app )
+		private LogFileSession( TheApp theApp, FilePath filePath, string solutionName, bool skipExisting )
+				: base( theApp )
 		{
-			this.file_path = file_path;
-			this.solution_name = solution_name;
+			this.filePath = filePath;
+			this.solutionName = solutionName;
 			Log.Info( "Session established." );
-			Log.Info( $"Reading from '{file_path}'" );
-			Log.Info( $"Appending to the debug output window of solution '{solution_name}'." );
-			debug_pane = new ResilientVsDebugProxy( solution_name );
-			resilient_input_stream = new ResilientInputStream( file_path, skip_existing );
+			Log.Info( $"Reading from '{filePath}'" );
+			Log.Info( $"Appending to the debug output window of solution '{solutionName}'." );
+			debugPane = new ResilientVsDebugProxy( solutionName );
+			resilientInputStream = new ResilientInputStream( filePath, skipExisting );
 		}
 
 		public override void LineReceived( string line )
@@ -243,15 +243,15 @@ public class TheApp : Sys.IDisposable
 
 		public override void Tick()
 		{
-			resilient_input_stream.ReadNext( text =>
+			resilientInputStream.ReadNext( text =>
 				{
-					bool ok = debug_pane.Write( text );
+					bool ok = debugPane.Write( text );
 					if( ok )
 						Log.Debug( $"wrote {text.Length} characters." );
 					return ok;
 				} );
 		}
 
-		public override string ToString() => $"{file_path} -> {solution_name}";
+		public override string ToString() => $"{filePath} -> {solutionName}";
 	}
 }

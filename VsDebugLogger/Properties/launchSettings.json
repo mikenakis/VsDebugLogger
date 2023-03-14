@@ -1,8 +1,7 @@
 {
   "profiles": {
     "VsDebugLogger": {
-      "commandName": "Project",
-      "commandLineArgs": "interval=1.0"
+      "commandName": "Project"
     }
   }
 }

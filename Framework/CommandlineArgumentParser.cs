@@ -13,18 +13,18 @@ public class CommandlineArgumentParser
 	public bool NonEmpty => arguments.Count != 0;
 	public string AllRemainingArguments => arguments.MakeString( " " );
 
-	public CommandlineArgumentParser( string[] arguments_array )
-			: this( new List<string>( arguments_array ) )
+	public CommandlineArgumentParser( string[] argumentsArray )
+			: this( new List<string>( argumentsArray ) )
 	{ }
 
 	public CommandlineArgumentParser( List<string> arguments )
 	{
 		this.arguments = arguments;
-		string? additional_arguments_file_name = TryExtractOption( "argumentFile" );
-		if( additional_arguments_file_name != null )
+		string? additionalArgumentsFileName = TryExtractOption( "argumentFile" );
+		if( additionalArgumentsFileName != null )
 		{
-			FilePath file_path = FilePath.FromRelativeOrAbsolutePath( additional_arguments_file_name );
-			IEnumerable<string> lines = file_path //
+			FilePath filePath = FilePath.FromRelativeOrAbsolutePath( additionalArgumentsFileName );
+			IEnumerable<string> lines = filePath //
 					.ReadLines() //
 					.Select( stripComment ) //
 					.Select( s => s.Trim() ) //
@@ -44,20 +44,20 @@ public class CommandlineArgumentParser
 	}
 
 	///Tries to find an argument by prefix in the given list of arguments, extracts it from the list, and returns the remainder after the prefix. Returns `null` if not found.
-	public string? TryExtractArgumentByPrefix( string argument_prefix )
+	public string? TryExtractArgumentByPrefix( string argumentPrefix )
 	{
-		int index = find( arguments, argument_prefix );
+		int index = find( arguments, argumentPrefix );
 		if( index == -1 )
 			return null;
 		string argument = arguments.ExtractAt( index );
-		return argument.Substring( argument_prefix.Length );
+		return argument.Substring( argumentPrefix.Length );
 
-		static int find( IEnumerable<string> args, string argument_name )
+		static int find( IEnumerable<string> args, string argumentName )
 		{
 			int i = 0;
 			foreach( var arg in args )
 			{
-				if( arg.StartsWith( argument_name, Sys.StringComparison.Ordinal ) )
+				if( arg.StartsWith( argumentName, Sys.StringComparison.Ordinal ) )
 					return i;
 				i++;
 			}
@@ -66,20 +66,20 @@ public class CommandlineArgumentParser
 	}
 
 	///Tries to find an option of the form name=value in the given list of arguments, extracts it from the list, and returns the value. Returns `null` if not found.
-	public string? TryExtractOption( string argument_name )
+	public string? TryExtractOption( string argumentName )
 	{
-		return TryExtractArgumentByPrefix( argument_name + "=" );
+		return TryExtractArgumentByPrefix( argumentName + "=" );
 	}
 
 	///Finds an option of the form name=value in the given list of arguments, extracts it from the list, and returns the value. Returns the supplied default if not found, fails if the default is `null`.
-	public string ExtractOption( string argument_name, string? default_value = null )
+	public string ExtractOption( string argumentName, string? defaultValue = null )
 	{
-		string? value = TryExtractOption( argument_name );
+		string? value = TryExtractOption( argumentName );
 		if( value == null )
 		{
-			if( default_value == null )
-				throw new Sys.ApplicationException( $"Expected '{argument_name}='" );
-			return default_value;
+			if( defaultValue == null )
+				throw new Sys.ApplicationException( $"Expected '{argumentName}='" );
+			return defaultValue;
 		}
 		return value;
 	}

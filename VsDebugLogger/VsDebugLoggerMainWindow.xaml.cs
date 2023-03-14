@@ -10,11 +10,11 @@ public partial class VsDebugLoggerMainWindow //: Wpf.Window
 		GlobalLogger.Instance = DistributingLogger.Of( DebugLogger.Instance, log );
 	}
 
-	private void log( LogEntry log_entry )
+	private void log( LogEntry logEntry )
 	{
-		if( log_entry.Level == LogLevel.Debug )
+		if( logEntry.Level == LogLevel.Debug )
 			return;
-		string text = log_entry.Level + ": " + log_entry.Message + "\r\n";
+		string text = logEntry.Level + ": " + logEntry.Message + "\r\n";
 		StatusText.Text += text;
 		StatusText.ScrollToEnd();
 	}

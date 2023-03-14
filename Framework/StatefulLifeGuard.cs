@@ -7,23 +7,23 @@ using static Statics;
 
 public class StatefulLifeGuard : Sys.IDisposable
 {
-	public static StatefulLifeGuard Create( bool collect_stack_trace = false, [SysComp.CallerFilePath] string caller_file_path = null!, //
-			[SysComp.CallerLineNumber] int caller_line_number = 0 )
+	public static StatefulLifeGuard Create( bool collectStackTrace = false, [SysComp.CallerFilePath] string callerFilePath = null!, //
+			[SysComp.CallerLineNumber] int callerLineNumber = 0 )
 	{
-		return new StatefulLifeGuard( collect_stack_trace, 1, caller_file_path, caller_line_number );
+		return new StatefulLifeGuard( collectStackTrace, 1, callerFilePath, callerLineNumber );
 	}
 
-	private readonly LifeGuard life_guard;
+	private readonly LifeGuard lifeGuard;
 	public bool IsAlive { get; private set; } = true;
 
-	private StatefulLifeGuard( bool collect_stack_trace, int frames_to_skip, string caller_file_path, int caller_line_number = 0 )
+	private StatefulLifeGuard( bool collectStackTrace, int framesToSkip, string callerFilePath, int callerLineNumber = 0 )
 	{
-		life_guard = LifeGuard.Create( frames_to_skip + 1, collect_stack_trace, caller_file_path, caller_line_number );
+		lifeGuard = LifeGuard.Create( framesToSkip + 1, collectStackTrace, callerFilePath, callerLineNumber );
 	}
 
 	public void Dispose()
 	{
-		life_guard.Dispose();
+		lifeGuard.Dispose();
 		IsAlive = false;
 	}
 
@@ -34,5 +34,5 @@ public class StatefulLifeGuard : Sys.IDisposable
 		return true;
 	}
 
-	public override string ToString() => life_guard.ToString();
+	public override string ToString() => lifeGuard.ToString();
 }

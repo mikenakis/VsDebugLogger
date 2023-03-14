@@ -7,38 +7,38 @@ public sealed class DistributingLogger
 {
 	public static Logger Of( params Logger[] loggers )
 	{
-		DistributingLogger distributing_logger = new DistributingLogger();
+		DistributingLogger distributingLogger = new DistributingLogger();
 		foreach( var logger in loggers )
-			distributing_logger.AddLog( logger );
-		return distributing_logger.EntryPoint;
+			distributingLogger.AddLog( logger );
+		return distributingLogger.EntryPoint;
 	}
 
-	private readonly List<Logger> mutable_loggers = new();
+	private readonly List<Logger> mutableLoggers = new();
 
 	public void AddLog( Logger logger )
 	{
-		lock( mutable_loggers )
+		lock( mutableLoggers )
 		{
-			Assert( !mutable_loggers.Contains( logger ) );
-			mutable_loggers.Add( logger );
+			Assert( !mutableLoggers.Contains( logger ) );
+			mutableLoggers.Add( logger );
 		}
 	}
 
 	public void RemoveLog( Logger logger )
 	{
-		lock( mutable_loggers )
-			mutable_loggers.DoRemove( logger );
+		lock( mutableLoggers )
+			mutableLoggers.DoRemove( logger );
 	}
 
 	private IReadOnlyList<Logger> get_loggers()
 	{
-		lock( mutable_loggers )
-			return mutable_loggers.ToArray();
+		lock( mutableLoggers )
+			return mutableLoggers.ToArray();
 	}
 
 	public Logger EntryPoint => add_log_entry;
 
-	private void add_log_entry( LogEntry log_entry )
+	private void add_log_entry( LogEntry logEntry )
 	{
 		IReadOnlyList<Logger> loggers = get_loggers();
 		Assert( loggers.Count > 0 );
@@ -46,7 +46,7 @@ public sealed class DistributingLogger
 		{
 			try
 			{
-				logger.Invoke( log_entry );
+				logger.Invoke( logEntry );
 			}
 			catch( Sys.Exception exception )
 			{

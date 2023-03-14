@@ -34,10 +34,10 @@ public abstract class FileSystemPath
 			Delete();
 	}
 
-	public DirectoryPath WithoutRelativePath( string relative_path )
+	public DirectoryPath WithoutRelativePath( string relativePath )
 	{
-		Assert( FullName.EndsWith( relative_path, Sys.StringComparison.Ordinal ) );
-		return DirectoryPath.FromAbsolutePath( FullName.Substring( 0, FullName.Length - relative_path.Length ) );
+		Assert( FullName.EndsWith( relativePath, Sys.StringComparison.Ordinal ) );
+		return DirectoryPath.FromAbsolutePath( FullName.Substring( 0, FullName.Length - relativePath.Length ) );
 	}
 
 	private string get_extension()
@@ -50,12 +50,12 @@ public abstract class FileSystemPath
 
 	public bool IsNetworkPath()
 	{
-		string full_name = FullName;
-		if( full_name.StartsWith( @"//", Sys.StringComparison.Ordinal ) || full_name.StartsWith( @"\\", Sys.StringComparison.Ordinal ) )
+		string fullName = FullName;
+		if( fullName.StartsWith( @"//", Sys.StringComparison.Ordinal ) || fullName.StartsWith( @"\\", Sys.StringComparison.Ordinal ) )
 			return true; // is a UNC path
-		string root_path = NotNull( SysIo.Path.GetPathRoot( full_name ) ); // get drive letter or \\host\share (will not return null because `path` is not null)
-		SysIo.DriveInfo drive_info = new SysIo.DriveInfo( root_path ); // get info about the drive
-		return drive_info.DriveType == SysIo.DriveType.Network; // return true if a network drive
+		string rootPath = NotNull( SysIo.Path.GetPathRoot( fullName ) ); // get drive letter or \\host\share (will not return null because `path` is not null)
+		SysIo.DriveInfo driveInfo = new SysIo.DriveInfo( rootPath ); // get info about the drive
+		return driveInfo.DriveType == SysIo.DriveType.Network; // return true if a network drive
 	}
 
 	// PEARL: if you attempt to access a non-existent network path, Windows will hit you with an insanely long timeout before it reports an error.

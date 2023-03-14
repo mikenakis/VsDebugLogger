@@ -14,24 +14,24 @@ namespace Framework
 	// NOTE: a better name for this class would be "ObjectLifeTimeGuard", but that would be too damn long, hence, "LifeGuard".
 	public abstract class LifeGuard : Sys.IDisposable
 	{
-		public static LifeGuard Create( [SysComp.CallerFilePath] string caller_file_path = null!, [SysComp.CallerLineNumber] int caller_line_number = 0 )
+		public static LifeGuard Create( [SysComp.CallerFilePath] string callerFilePath = null!, [SysComp.CallerLineNumber] int callerLineNumber = 0 )
 		{
-			return Create( frames_to_skip: 1, false, caller_file_path, caller_line_number );
+			return Create( framesToSkip: 1, false, callerFilePath, callerLineNumber );
 		}
 
-		public static LifeGuard Create( bool collect_stack_trace, [SysComp.CallerFilePath] string caller_file_path = null!, [SysComp.CallerLineNumber] int caller_line_number = 0 )
+		public static LifeGuard Create( bool collectStackTrace, [SysComp.CallerFilePath] string callerFilePath = null!, [SysComp.CallerLineNumber] int callerLineNumber = 0 )
 		{
-			return Create( frames_to_skip: 1, collect_stack_trace, caller_file_path, caller_line_number );
+			return Create( framesToSkip: 1, collectStackTrace, callerFilePath, callerLineNumber );
 		}
 
-		public static LifeGuard Create( int frames_to_skip, bool collect_stack_trace = false, [SysComp.CallerFilePath] string caller_file_path = null!, [SysComp.CallerLineNumber] int caller_line_number = 0 )
+		public static LifeGuard Create( int framesToSkip, bool collectStackTrace = false, [SysComp.CallerFilePath] string callerFilePath = null!, [SysComp.CallerLineNumber] int callerLineNumber = 0 )
 		{
-			Assert( caller_file_path != null );
+			Assert( callerFilePath != null );
 			if( !DebugMode )
 				return ProductionLifeGuard.Instance;
-			if( collect_stack_trace )
-				return new VerboseDebugLifeGuard( caller_file_path, caller_line_number, frames_to_skip + 1 );
-			return new TerseDebugLifeGuard( caller_file_path, caller_line_number );
+			if( collectStackTrace )
+				return new VerboseDebugLifeGuard( callerFilePath, callerLineNumber, framesToSkip + 1 );
+			return new TerseDebugLifeGuard( callerFilePath, callerLineNumber );
 		}
 
 		public abstract void Dispose();
@@ -57,18 +57,18 @@ namespace Framework
 
 		private abstract class DebugLifeGuard : LifeGuard
 		{
-			private static long id_seed;
+			private static long idSeed;
 
 			private bool alive = true;
-			private readonly string caller_file_path;
-			private readonly int caller_line_number;
+			private readonly string callerFilePath;
+			private readonly int callerLineNumber;
 			private readonly string message;
-			private readonly long object_id = Interlocked.Increment( ref id_seed );
+			private readonly long objectId = Interlocked.Increment( ref idSeed );
 
-			protected DebugLifeGuard( string caller_file_path, int caller_line_number, string message )
+			protected DebugLifeGuard( string callerFilePath, int callerLineNumber, string message )
 			{
-				this.caller_file_path = caller_file_path;
-				this.caller_line_number = caller_line_number;
+				this.callerFilePath = callerFilePath;
+				this.callerLineNumber = callerLineNumber;
 				this.message = message;
 			}
 
@@ -86,71 +86,71 @@ namespace Framework
 				return true;
 			}
 
-			protected static string GetSourceInfo( string? filename, int line_number ) => $"{filename}({line_number})";
+			protected static string GetSourceInfo( string? filename, int lineNumber ) => $"{filename}({lineNumber})";
 
 			~DebugLifeGuard()
 			{
-				report( object_id, message, caller_file_path, caller_line_number );
+				report( objectId, message, callerFilePath, callerLineNumber );
 			}
 
-			public override string ToString() => $"objectId=0x{object_id:x}{(alive ? "" : " END-OF-LIFE")}";
+			public override string ToString() => $"objectId=0x{objectId:x}{(alive ? "" : " END-OF-LIFE")}";
 
 			private readonly struct SourceLocation
 			{
-				private readonly string file_path;
-				private readonly int line_number;
+				private readonly string filePath;
+				private readonly int lineNumber;
 
-				public SourceLocation( string file_path, int line_number )
+				public SourceLocation( string filePath, int lineNumber )
 				{
-					this.file_path = file_path;
-					this.line_number = line_number;
+					this.filePath = filePath;
+					this.lineNumber = lineNumber;
 				}
 
 				[Sys.Obsolete] public override bool Equals( object? other ) => other is SourceLocation kin && equals( kin );
 
-				private bool equals( SourceLocation other ) => file_path == other.file_path && line_number == other.line_number;
-				public override int GetHashCode() => Sys.HashCode.Combine( file_path, line_number );
+				private bool equals( SourceLocation other ) => filePath == other.filePath && lineNumber == other.lineNumber;
+				public override int GetHashCode() => Sys.HashCode.Combine( filePath, lineNumber );
 			}
 
-			private static readonly ICollection<SourceLocation> reported_source_locations = new HashSet<SourceLocation>();
+			private static readonly ICollection<SourceLocation> reportedSourceLocations = new HashSet<SourceLocation>();
 
-			private static void report( long object_id, string message, string caller_file_path, int caller_line_number )
+			private static void report( long objectId, string message, string callerFilePath, int callerLineNumber )
 			{
-				SourceLocation caller_source_location = new SourceLocation( caller_file_path, caller_line_number );
-				lock( reported_source_locations )
+				SourceLocation callerSourceLocation = new SourceLocation( callerFilePath, callerLineNumber );
+				lock( reportedSourceLocations )
 				{
-					if( reported_source_locations.Contains( caller_source_location ) )
+					if( reportedSourceLocations.Contains( callerSourceLocation ) )
 						return;
-					reported_source_locations.Add( caller_source_location );
+					reportedSourceLocations.Add( callerSourceLocation );
 				}
-				Log.LogRawMessage( LogLevel.Error, $"IDisposable allocated at this source location was never disposed! id=0x{object_id:x}. {message}", caller_file_path, caller_line_number );
+				Log.LogRawMessage( LogLevel.Error, $"IDisposable allocated at this source location was never disposed! id=0x{objectId:x}. {message}", callerFilePath, callerLineNumber );
 				Breakpoint(); //you may resume program execution to see more leaked disposables, but please fix this before committing.
 			}
 		}
 
 		private sealed class TerseDebugLifeGuard : DebugLifeGuard
 		{
-			public TerseDebugLifeGuard( string caller_file_path, int caller_line_number )
-					: base( caller_file_path, caller_line_number, $"To enable stack trace collection for this class, pass 'true' to the {nameof(LifeGuard)}.{nameof(Create)}() method call." )
+			public TerseDebugLifeGuard( string callerFilePath, int callerLineNumber )
+					: base( callerFilePath, callerLineNumber, $"To enable stack trace collection for this class, pass 'true' to the {nameof(LifeGuard)}.{nameof(Create)}() method call." )
 			{ }
 		}
 
 		private sealed class VerboseDebugLifeGuard : DebugLifeGuard
 		{
-			public VerboseDebugLifeGuard( string caller_file_path, int caller_line_number, int frames_to_skip )
-					: base( caller_file_path, caller_line_number, build_message( frames_to_skip + 1 ) )
+			public VerboseDebugLifeGuard( string callerFilePath, int callerLineNumber, int framesToSkip )
+					: base( callerFilePath, callerLineNumber, build_message( framesToSkip + 1 ) )
 			{ }
 
-			private static string build_message( int frames_to_skip )
+			private static string build_message( int framesToSkip )
 			{
-				IEnumerable<string> source_infos = get_stack_frames( frames_to_skip + 1 ).Select( get_source_info_from_stack_frame );
-				return "Stack Trace:\r\n" + string.Join( "\r\n", source_infos );
+				IEnumerable<string> sourceInfos = get_stack_frames( framesToSkip + 1 ).Select( get_source_info_from_stack_frame );
+				return "Stack Trace:\r\n" + string.Join( "\r\n", sourceInfos );
 			}
 
-			private static IEnumerable<SysDiag.StackFrame> get_stack_frames( int frames_to_skip )
+			private static IEnumerable<SysDiag.StackFrame> get_stack_frames( int framesToSkip )
 			{
-				var stack_trace = new SysDiag.StackTrace( frames_to_skip + 1, true );
-				SysDiag.StackFrame[] frames = stack_trace.GetFrames();
+				var stackTrace = new SysDiag.StackTrace( framesToSkip + 1, true );
+				SysDiag.StackFrame[] frames = stackTrace.GetFrames();
 				MethodBase? method = frames[0].GetMethod();
 				Assert( method == null || method.DeclaringType == null || typeof(Sys.IDisposable).IsAssignableFrom( method.DeclaringType ) );
 				return frames.Where( f => f.GetFileName() != null );
@@ -158,10 +158,10 @@ namespace Framework
 
 			private static string get_source_info_from_stack_frame( SysDiag.StackFrame frame )
 			{
-				string source_info = GetSourceInfo( frame.GetFileName(), frame.GetFileLineNumber() );
+				string sourceInfo = GetSourceInfo( frame.GetFileName(), frame.GetFileLineNumber() );
 				MethodBase? method = frame.GetMethod();
-				Sys.Type? declaring_type = method?.DeclaringType;
-				return $"    {source_info}: {declaring_type?.FullName ?? "?"}.{method?.Name ?? "?"}()";
+				Sys.Type? declaringType = method?.DeclaringType;
+				return $"    {sourceInfo}: {declaringType?.FullName ?? "?"}.{method?.Name ?? "?"}()";
 			}
 		}
 	}
