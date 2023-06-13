@@ -168,7 +168,7 @@ If you do decide to contribute, please contact me first to arrange the specifics
 	- This is necessary because multiple different instances of VsDebugLogger may be launched from various applications in various solutions, but all these instances will immediately terminate except the one which was launched first, therefore the settings in effect will be whatever settings were passed to the first one launched, which is arbitrary.
 - Display the currently active sessions in a list box
     - Possibly with statistics, like number of bytes logged so far, possibly even with an animated graph
-- Once launched, make it minimize-to-tray
+- Go through the following samples and see if there is anything that can be optimized in the tray icon:
   - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
   - See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
   - See Stack Overflow: "C# trayicon using wpf" https://stackoverflow.com/q/12428006/773113
@@ -177,7 +177,6 @@ If you do decide to contribute, please contact me first to arrange the specifics
   - See Stack Overflow: "Can I use NotifyIcon in WPF?" https://stackoverflow.com/q/17674761/773113
   - See Code Project: "WPF NotifyIcon" https://www.codeproject.com/Articles/36468/WPF-NotifyIcon-2
   - See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
-  - See possemeeg.wordpress.com: "Minimize to tray icon in WPF" https://possemeeg.wordpress.com/2007/09/06/minimize-to-tray-icon-in-wpf/
   - See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
 - Replace the logging text box with a virtual text box.
     - Because the text in there might become long.
