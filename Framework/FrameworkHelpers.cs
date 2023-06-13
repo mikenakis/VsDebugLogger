@@ -1,11 +1,12 @@
 ﻿namespace Framework;
 
 using System.Linq;
-using Sys = Sys;
-using SysText = SysText;
-using SysGlob = SysGlob;
 using static Statics;
 using Framework.Extensions;
+using Sys = global::System;
+using SysGlob = global::System.Globalization;
+using SysText = global::System.Text;
+using global::System.Collections.Generic;
 
 public static class FrameworkHelpers
 {

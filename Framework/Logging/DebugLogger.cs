@@ -1,6 +1,6 @@
 ﻿namespace Framework.Logging;
 
-using SysDiag = SysDiag;
+using SysDiag = global::System.Diagnostics;
 
 //PEARL: Excessive use of this class slows down debug runs, because when the Visual Studio Debugger is active, it
 //       intercepts DotNet debug output and does extremely time-consuming stuff with it. For a full explanation, and

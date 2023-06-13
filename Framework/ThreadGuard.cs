@@ -1,7 +1,7 @@
 ﻿namespace Framework;
 
-using Sys = Sys;
-using SysThread = SysThread;
+using Sys = System;
+using SysThread = System.Threading;
 using static Statics;
 
 public abstract class ThreadGuard
@@ -19,7 +19,7 @@ public abstract class ThreadGuard
 
 	private sealed class ProductionThreadGuard : ThreadGuard
 	{
-		public static readonly ProductionThreadGuard Instance = new ProductionThreadGuard();
+		public static readonly ProductionThreadGuard Instance = new();
 
 		private ProductionThreadGuard()
 		{ }

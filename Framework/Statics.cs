@@ -1,9 +1,12 @@
 ﻿namespace Framework;
 
-using Sys = Sys;
-using SysDiag = SysDiag;
-using SysCompiler = SysCompiler;
-using SysThread = SysThread;
+using Sys = global::System;
+using SysThread = global::System.Threading;
+using SysDiag = global::System.Diagnostics;
+using SysCompiler = global::System.Runtime.CompilerServices;
+using SysCodeAnalysis = System.Diagnostics.CodeAnalysis;
+using Math = global::System.Math;
+using Log = global::Framework.Logging.Log;
 
 public static class Statics
 {

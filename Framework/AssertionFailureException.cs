@@ -1,10 +1,10 @@
 ﻿namespace Framework;
 
-using System;
+using Sys = System;
 using static Statics;
 
 /// An exception to throw when an assertion fails.
-public class AssertionFailureException : Exception
+public class AssertionFailureException : Sys.Exception
 {
 	public readonly object? Expression;
 
@@ -12,7 +12,7 @@ public class AssertionFailureException : Exception
 	public AssertionFailureException( object? expression ) => Expression = expression;
 
 	/// Constructor
-	public AssertionFailureException( object? expression, Exception? cause )
+	public AssertionFailureException( object? expression, Sys.Exception? cause )
 			: base( null, cause )
 		=> Expression = expression;
 

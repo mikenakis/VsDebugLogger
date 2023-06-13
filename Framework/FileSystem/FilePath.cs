@@ -1,11 +1,12 @@
 ﻿namespace Framework.FileSystem;
 
-using System.Collections.Generic;
-using SysThread = SysThread;
-using Sys = Sys;
-using SysIo = SysIo;
-using SysText = SysText;
-using static Statics;
+using Sys = global::System;
+using SysIo = global::System.IO;
+using SysText = global::System.Text;
+using SysThread = global::System.Threading;
+using global::System.Collections.Generic;
+using static global::Framework.Statics;
+using Log = global::Framework.Logging.Log;
 
 public sealed class FilePath : FileSystemPath
 {

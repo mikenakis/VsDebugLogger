@@ -1,8 +1,8 @@
 ﻿namespace Framework.Logging;
 
-using System.Collections.Generic;
-using SysText = SysText;
-using SysThread = SysThread;
+using SysText = global::System.Text;
+using SysThread = global::System.Threading;
+using global::System.Collections.Generic;
 
 public class FormattingLogger
 {

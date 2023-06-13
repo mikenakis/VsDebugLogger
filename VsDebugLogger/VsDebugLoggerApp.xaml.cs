@@ -1,10 +1,17 @@
 ﻿namespace VsDebugLogger;
 
+using Sys = global::System;
+using SysIo = global::System.IO;
+using SysIoPipes = global::System.IO.Pipes;
+using SysTasks = global::System.Threading.Tasks;
+using SysGlob = global::System.Globalization;
+using Wpf = System.Windows;
+using WpfThread = System.Windows.Threading;
+using global::System.Collections.Generic;
+using static global::Framework.Statics;
+using Log = global::Framework.Logging.Log;
+using Framework.Extensions;
 using Framework;
-using Wpf = Sys.Windows;
-using static Framework.Statics;
-using SysIoPipes = SysIo.Pipes;
-using WpfThread = Sys.Windows.Threading;
 using Framework.FileSystem;
 
 public partial class VsDebugLoggerApp //: Wpf.Application

@@ -1,7 +1,10 @@
 ﻿namespace Framework.Logging;
 
-using System.Collections.Generic;
-using static Statics;
+using Sys = global::System;
+using SysDiag = global::System.Diagnostics;
+using global::System.Collections.Generic;
+using static global::Framework.Statics;
+using Framework.Extensions;
 
 public sealed class DistributingLogger
 {

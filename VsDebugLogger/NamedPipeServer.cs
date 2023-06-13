@@ -1,7 +1,14 @@
 ﻿namespace VsDebugLogger;
 
 using Framework;
-using SysIoPipes = SysIo.Pipes;
+using Sys = global::System;
+using SysIo = global::System.IO;
+using SysTasks = global::System.Threading.Tasks;
+using global::System.Collections.Generic;
+using global::System.Linq;
+using static global::Framework.Statics;
+using Log = global::Framework.Logging.Log;
+using SysIoPipes = System.IO.Pipes;
 
 internal sealed class NamedPipeServer : Sys.IDisposable
 {

@@ -6,6 +6,8 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution Items", "_Solution Items", "{ED64B506-038D-4108-8066-9C71B9D892BF}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		infographic1.svg = infographic1.svg
+		infographic2.svg = infographic2.svg
 		README.md = README.md
 		VsDebugLogger-logo.svg = VsDebugLogger-logo.svg
 	EndProjectSection

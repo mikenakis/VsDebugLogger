@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<TargetFramework>net7.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
 		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
@@ -12,6 +12,8 @@
 		<NoWarn>1701;1702</NoWarn>
 		<NoWarn>CS0809</NoWarn>
 		<ApplicationIcon>VsDebugLogger.ico</ApplicationIcon>
+		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+		<EnableNETAnalyzers>False</EnableNETAnalyzers>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -28,14 +30,6 @@
 	<ItemGroup>
 		<Compile Remove="GlobalExtensions.cs" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Remove="VsDebugLogger.ico" />
-	</ItemGroup>
-
-	<!-- <ItemGroup> -->
-	<!-- 	<Page Remove="VsDebugLoggerApp.xaml" /> -->
-	<!-- </ItemGroup> -->
 
 	<ItemGroup>
 		<ApplicationDefinition Include="VsDebugLoggerApp.xaml">
@@ -71,11 +65,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="VsDebugLogger.ico" />
+	  <Resource Include="VsDebugLogger.ico">
+	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+	  </Resource>
 	</ItemGroup>
 
 	<ItemGroup>
 	  <EmbeddedResource Include="VsDebugLogger.ico" />
 	</ItemGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+	  <Exec Command="cmd /c $(ProjectDir)post-build-step.bat $(ProjectName) $(TargetDir)" />
+	</Target>
 
 </Project>

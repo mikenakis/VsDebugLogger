@@ -9,6 +9,8 @@
 		<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
 		<NoWarn>1701;1702</NoWarn>
 		<NoWarn>CS0809</NoWarn>
+		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
+		<EnableNETAnalyzers>False</EnableNETAnalyzers>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

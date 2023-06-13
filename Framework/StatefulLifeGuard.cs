@@ -1,8 +1,8 @@
 ﻿namespace Framework;
 
-using Sys = Sys;
+using Sys = System;
 using SysComp = System.Runtime.CompilerServices;
-using SysDiag = SysDiag;
+using SysDiag = System.Diagnostics;
 using static Statics;
 
 public class StatefulLifeGuard : Sys.IDisposable

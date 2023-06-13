@@ -1,8 +1,12 @@
 ﻿namespace VsDebugLogger;
 
+using Sys = global::System;
+using SysIo = global::System.IO;
+using SysText = global::System.Text;
+using static global::Framework.Statics;
+using Log = global::Framework.Logging.Log;
 using Framework;
 using Framework.FileSystem;
-using static Framework.Statics;
 
 internal class ResilientInputStream
 {

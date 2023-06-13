@@ -1,9 +1,10 @@
 ﻿namespace Framework.Extensions;
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using SysText = SysText;
-using static Statics;
+using SysText = global::System.Text;
+using global::System.Collections.Generic;
+using global::System.Collections.Immutable;
+using static global::Framework.Statics;
+
 
 public static class FrameworkExtensions
 {

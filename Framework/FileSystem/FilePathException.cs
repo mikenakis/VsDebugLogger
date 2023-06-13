@@ -1,6 +1,6 @@
 ﻿namespace Framework.FileSystem;
 
-using Sys = Sys;
+using Sys = global::System;
 
 public class FilePathException : Sys.Exception
 {

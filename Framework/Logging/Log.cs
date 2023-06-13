@@ -1,13 +1,13 @@
 ﻿namespace Framework.Logging;
 
-using System.Collections.Generic;
-using System.Linq;
-using Sys = Sys;
-using SysCompiler = SysCompiler;
-using SysDiag = SysDiag;
-using SysText = SysText;
-using SysReflect = SysReflect;
-using static Statics;
+using Sys = global::System;
+using SysText = global::System.Text;
+using SysDiag = global::System.Diagnostics;
+using SysCompiler = global::System.Runtime.CompilerServices;
+using SysReflect = System.Reflection;
+using global::System.Collections.Generic;
+using global::System.Linq;
+using static global::Framework.Statics;
 using Framework.Extensions;
 
 public static class Log

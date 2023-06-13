@@ -426,6 +426,7 @@ Dui.Helpers.DebugHelpers.Assert</s:String>
 	<s:String x:Key="/Default/RunConfigs/Config/=796BF6BDFB6C72478856A28DE65C179F/Name/@EntryValue">GUI</s:String>
 	<s:String x:Key="/Default/RunConfigs/Config/=796BF6BDFB6C72478856A28DE65C179F/ProjectGuid/@EntryValue">C151DDD565A2AD4EBD62E9C0EBDC1FF8</s:String>
 	<s:String x:Key="/Default/RunConfigs/Config/=796BF6BDFB6C72478856A28DE65C179F/Type/@EntryValue">project</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=HKEY/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=_0020e_0020_0029_000D_000A_0009_0009_0009_0009_007B_000D_000A/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=_00B5rad/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Acylinder/@EntryIndexedValue">True</s:Boolean>

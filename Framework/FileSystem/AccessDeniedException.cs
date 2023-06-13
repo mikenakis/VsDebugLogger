@@ -1,6 +1,6 @@
 ﻿namespace Framework.FileSystem;
 
-using System.IO;
+using SysIo = global::System.IO;
 
 // Indicates that the process insufficient privileges to access a certain resource.  (The caller does not have the required permission.)
 // For example, trying to read from a file without the necessary read permission.
@@ -10,7 +10,7 @@ using System.IO;
 //   - Trying to write a read-only file. (This is not a permissions error, it is a "file is not even writable" error.)
 public class AccessDeniedException : FilePathException
 {
-	public AccessDeniedException( IOException innerException, FilePath filePath, string operationName )
+	public AccessDeniedException( SysIo.IOException innerException, FilePath filePath, string operationName )
 			: base( innerException, filePath, operationName )
 	{ }
 }

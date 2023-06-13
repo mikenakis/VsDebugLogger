@@ -1,9 +1,10 @@
 ﻿namespace Framework.FileSystem;
 
-using System.Threading.Tasks;
-using Sys = Sys;
-using SysIo = SysIo;
-using static Statics;
+using Sys = global::System;
+using SysIo = global::System.IO;
+using SysTasks = global::System.Threading.Tasks;
+using static global::Framework.Statics;
+using Log = global::Framework.Logging.Log;
 
 ///<summary>Common base class for <see cref="FilePath"/> and <see cref="DirectoryPath"/>.</summary>
 public abstract class FileSystemPath
@@ -67,7 +68,7 @@ public abstract class FileSystemPath
 	{
 		if( IsNetworkPath() )
 		{
-			var task = new Task<bool>( () => FileSystemInfo.Exists );
+			var task = new SysTasks.Task<bool>( () => FileSystemInfo.Exists );
 			task.Start();
 			Sys.TimeSpan timeout = Sys.TimeSpan.FromSeconds( 2 );
 			if( !task.Wait( timeout ) )

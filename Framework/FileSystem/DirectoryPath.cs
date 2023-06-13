@@ -1,17 +1,17 @@
 ﻿namespace Framework.FileSystem;
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using Sys = Sys;
-using SysIo = SysIo;
-using static Statics;
+using Sys = global::System;
+using SysIo = global::System.IO;
+using global::System.Collections.Generic;
+using global::System.Collections.Immutable;
+using global::System.Linq;
+using static global::Framework.Statics;
 
 public sealed class DirectoryPath : FileSystemPath
 {
 	public static DirectoryPath GetTempPath() => FromAbsolutePath( SysIo.Path.GetTempPath() );
 
-	public static DirectoryPath FromAbsolutePath( string path ) => new DirectoryPath( path );
+	public static DirectoryPath FromAbsolutePath( string path ) => new( path );
 
 	public static DirectoryPath FromRelativePath( string path )
 	{
