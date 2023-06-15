@@ -166,9 +166,13 @@ If you do decide to contribute, please contact me first to arrange the specifics
 - Get rid of settings as command-line arguments
     - Store them in some settings file. 
 	- This is necessary because multiple different instances of VsDebugLogger may be launched from various applications in various solutions, but all these instances will immediately terminate except the one which was launched first, therefore the settings in effect will be whatever settings were passed to the first one launched, which is arbitrary.
+- Introduce a dotnet library for inclusion by the client app to simplify the task of launching VsDebugLogger and connecting to it.
+- Replace the logging text box with a virtual text box.
+    - Because the text in there might become long.
+- Get rid of the logging text box and replace it with a single status indicator
 - Display the currently active sessions in a list box
-    - Possibly with statistics, like number of bytes logged so far, possibly even with an animated graph
-- Go through the following samples and see if there is anything that can be optimized in the tray icon:
+    - With the status of each session, and possibly with statistics, like number of bytes logged so far
+- Go through the following samples and see if there is anything that can be improved in the tray icon:
   - One point to keep in mind is that Microsoft seems to be making tray icons harder and harder to use; for example, Windows 11 hides all non-microsoft tray icons and you have to perform magical incantations to get it to show all tray icons.
   - See David Anson (Microsoft): "Get out of the way with the tray ["Minimize to tray" sample implementation for WPF]" https://dlaa.me/blog/post/9889700
   - See Stack Overflow: "C# trayicon using wpf" https://stackoverflow.com/q/12428006/773113
@@ -178,9 +182,7 @@ If you do decide to contribute, please contact me first to arrange the specifics
   - See Code Project: "WPF NotifyIcon" https://www.codeproject.com/Articles/36468/WPF-NotifyIcon-2
   - See Microsoft Learn: "Notification Icon Sample" https://learn.microsoft.com/en-us/previous-versions/aa972170(v=vs.100)?redirectedfrom=MSDN
   - See Stack Overflow: "WPF Application that only has a tray icon" https://stackoverflow.com/q/1472633/773113
-- Replace the logging text box with a virtual text box.
-    - Because the text in there might become long.
-- Display the log text inside VsDebugLogger
+- Display the log text inside VsDebugLogger instead of sending it to Visual Studio.
     - If we do this, then the following possibilities become available:
     	- When a log line is clicked, we can make VisualStudio go to the specific file and line using Visual Studio Automation.
     	- log line coloring per log level
