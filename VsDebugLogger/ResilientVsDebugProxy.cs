@@ -98,12 +98,13 @@ public class ResilientVsDebugProxy
 
 	private static string get_solution_name_from_vs_instance( VsAutomation80.DTE2 vsInstance )
 	{
+		//PEARL: The 'EnvDTE.Solution.FullName' property does not contain a "full name", it actually contains the full pathname to the solution.
+		//       Therefore, we cannot use this property; instead, we use EnvDTE.Solution.Properties.Item( "Name" ).Value.
+		//       Check out Microsoft's despicable corp-talk about this here:
+		//           Visual Studio Developer Community - Question: "DTE2 Solution.Fullname return a filepath" - Resolution: "Closed - Not a Bug"
+		//           https://developercommunity.visualstudio.com/t/dte2-solutionfullname-return-a-filepath/43005
 		if( False )
 		{
-			//PEARL: The 'EnvDTE.Solution.FullName' property does not contain a "full name", it actually contains the full pathname to the solution.
-			//Check out Microsoft's despicable corp-talk about this here:
-			//Visual Studio Developer Community - Question: "DTE2 Solution.Fullname return a filepath" - Resolution: "Closed - Not a Bug"
-			//https://developercommunity.visualstudio.com/t/dte2-solutionfullname-return-a-filepath/43005
 			FilePath solutionFilePath = FilePath.FromAbsolutePath( vsInstance.Solution.FullName );
 			return solutionFilePath.GetFileNameWithoutExtension();
 		}
@@ -122,7 +123,15 @@ public class ResilientVsDebugProxy
 		VsAutomation.OutputWindow outputWindow = (VsAutomation.OutputWindow)windowItem.Object;
 		foreach( VsAutomation.OutputWindowPane outputWindowPane in outputWindow.OutputWindowPanes )
 			if( outputWindowPane.Name == outputWindowPaneName )
+			{
+				//PEARL: Unless Visual Studio has already taken some action which required the pane to be shown, then the pane
+				//       will be invisible AND unavailable for selection in the "Show output from:" drop-down list.
+				//       Thus, not only will the user not see the text that we write to that pane, but also,
+				//       the user will not even be able to select the pane from the drop down list so as to see the text.
+				//       The magical incantation which solves this problem is to "Activate" the pane.
+				outputWindowPane.Activate();
 				return outputWindowPane;
+			}
 		return outputWindow.OutputWindowPanes.Add( outputWindowPaneName );
 	}
 
