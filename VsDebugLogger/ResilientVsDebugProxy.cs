@@ -88,7 +88,7 @@ public class ResilientVsDebugProxy
 			return vsInstances[0];
 		foreach( VsAutomation80.DTE2 vsInstance in vsInstances )
 		{
-			string thisSolutionName = get_solution_name_from_vs_instance( vsInstance );
+			string? thisSolutionName = get_solution_name_from_vs_instance( vsInstance );
 			if( thisSolutionName == solutionName )
 				return vsInstance;
 		}
@@ -96,7 +96,7 @@ public class ResilientVsDebugProxy
 		return null;
 	}
 
-	private static string get_solution_name_from_vs_instance( VsAutomation80.DTE2 vsInstance )
+	private static string? get_solution_name_from_vs_instance( VsAutomation80.DTE2 vsInstance )
 	{
 		//PEARL: The 'EnvDTE.Solution.FullName' property does not contain a "full name", it actually contains the full pathname to the solution.
 		//       Therefore, we cannot use this property; instead, we use EnvDTE.Solution.Properties.Item( "Name" ).Value.
@@ -110,7 +110,22 @@ public class ResilientVsDebugProxy
 		}
 		else
 		{
-			return (string)vsInstance.Solution.Properties.Item( "Name" ).Value;
+			//PEARL: If one of the currently open instances of Visual Studio happens have no solution open,
+			//       its `DTE2.Solution` property will still return a perfectly valid solution object,
+			//       and this object will have a perfectly valid `Properties` collection,
+			//       and this collection will contain a perfectly valid "Name" item,
+			//       and if you try to get the `Value` of that item you will be slapped in the face with
+			//       a System.Runtime.InteropServices.COMException which tells you absolutely nothing as
+			//       to what is wrong.
+			//       (Unless you consider "Exception occurred. (0x80020009 (DISP_E_EXCEPTION))" to be an
+			//       explanation as to what is wrong.)
+			//       To avoid this, we have to check the `IsOpen` property of the solution.
+			VsAutomation.Solution? solution = vsInstance.Solution;
+			if( !solution.IsOpen )
+				return null;
+			VsAutomation.Properties solutionProperties = solution.Properties;
+			VsAutomation.Property property = solutionProperties.Item( "Name" );
+			return (string)property.Value;
 		}
 	}
 
@@ -129,7 +144,14 @@ public class ResilientVsDebugProxy
 				//       Thus, not only will the user not see the text that we write to that pane, but also,
 				//       the user will not even be able to select the pane from the drop down list so as to see the text.
 				//       The magical incantation which solves this problem is to "Activate" the pane.
-				outputWindowPane.Activate();
+				try
+				{
+					outputWindowPane.Activate();
+				}
+				catch( Exception ex )
+				{
+					Log.Warn( "outputWindowPane.Activate() failed.", ex );
+				}
 				return outputWindowPane;
 			}
 		return outputWindow.OutputWindowPanes.Add( outputWindowPaneName );

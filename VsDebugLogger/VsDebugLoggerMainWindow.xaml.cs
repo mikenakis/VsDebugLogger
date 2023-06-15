@@ -96,6 +96,7 @@ public partial class VsDebugLoggerMainWindow : Wpf.Window
 			return;
 		string text = logEntry.Level + ": " + logEntry.Message + "\r\n";
 		StatusText.Text += text;
+		StatusText.CaretIndex = StatusText.Text.Length;
 		StatusText.ScrollToEnd();
 	}
 }
