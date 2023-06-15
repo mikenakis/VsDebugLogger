@@ -167,6 +167,13 @@ If you do decide to contribute, please contact me first to arrange the specifics
     - Store them in some settings file. 
 	- This is necessary because multiple different instances of VsDebugLogger may be launched from various applications in various solutions, but all these instances will immediately terminate except the one which was launched first, therefore the settings in effect will be whatever settings were passed to the first one launched, which is arbitrary.
 - Introduce a dotnet library for inclusion by the client app to simplify the task of launching VsDebugLogger and connecting to it.
+  - This library could:
+    - Locate VsDebugLogger so that the client app does not have to know where VsDebugLogger is located.
+    - Discover the name of the solution so that the client app does not have to have the solution name hard-coded in it.
+	- Keep track of disconnections from VsDebugLogger and keep attempting to reconnect.
+	- Possibly make a copy of VsDebugLogger before launching it, so that VsDebugLogger can be rebuilt while running. When VsDebugLogger starts
+	  and discovers that another instance of it is already running, it should negotiate with the other instace so as to ensure that the one that
+	  stays running is the newer one, while the one hat terminates is the older one.
 - Replace the logging text box with a virtual text box.
     - Because the text in there might become long.
 - Get rid of the logging text box and replace it with a single status indicator

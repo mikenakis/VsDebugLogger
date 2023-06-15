@@ -139,11 +139,20 @@ public class ResilientVsDebugProxy
 		foreach( VsAutomation.OutputWindowPane outputWindowPane in outputWindow.OutputWindowPanes )
 			if( outputWindowPane.Name == outputWindowPaneName )
 			{
-				//PEARL: Unless Visual Studio has already taken some action which required the pane to be shown, then the pane
-				//       will be invisible AND unavailable for selection in the "Show output from:" drop-down list.
-				//       Thus, not only will the user not see the text that we write to that pane, but also,
-				//       the user will not even be able to select the pane from the drop down list so as to see the text.
-				//       The magical incantation which solves this problem is to "Activate" the pane.
+				//PEARL: Unless Visual Studio has already taken some action which required the debug output pane to be shown,
+				//       the pane will be invisible AND unavailable for selection in the "Show output from:" drop-down list.
+				//       Thus, not only will the user not see the text that we write to that pane, but also, the user will
+				//       not even be able to select the pane from the drop down list so as to see the text.
+				//       Normally this cannot happen, because Visual Studio will open the debug output pane when launching
+				//       our application, but it may happen by mistake, if solution A connects to VsDebugLogger
+				//       providing a wrong solution name, which happens to be the name of solution B, which is currently open
+				//       in another instance of Visual Studio, and debugging has not been attempted at least once in that other
+				//       instance.
+				//       Under such a scenario, VsDebugLogger will be sending the log output of solution A into the debug output
+				//       window of the instance of Visual Studio with solution B, and if the user could see this they would
+				//       immediately know what mistake they made, but the user will not be able to see it.
+				//       The magical incantation which solves this problem is to "Activate" the debug output pane, thus ensuring
+				//       that the pane is visible to the user, or at the very least selectable for viewing by the user.
 				try
 				{
 					outputWindowPane.Activate();
