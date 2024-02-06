@@ -160,6 +160,7 @@ If you do decide to contribute, please contact me first to arrange the specifics
 
 # TO DO list
 
+- The logging output has been observed to get garbled in some rare cases, possibly as a result of multiple threads trying to log simultaneously; need to troubleshoot.
 - Handle spaces in names.
     - Currently, if the solution name or the log pathname contain any spaces, bad things will happen.
 - Add persisting and restoring of the window geometry across runs
@@ -174,6 +175,8 @@ If you do decide to contribute, please contact me first to arrange the specifics
 	- Possibly make a copy of VsDebugLogger before launching it, so that VsDebugLogger can be rebuilt while running. When VsDebugLogger starts
 	  and discovers that another instance of it is already running, it should negotiate with the other instace so as to ensure that the one that
 	  stays running is the newer one, while the one hat terminates is the older one.
+- Take look at Beckhoff's "Implementing a COM Message Filter" just in case it contains something useful: https://infosys.beckhoff.com/english.php?content=../content/1033/tc3_automationinterface/242727947.html&id=
+- Take a look at 'dte.SuppressUI = true;' and 'dte.MainWindow.Visible = false;' as a potential means of preventing Visual Studio from going into blocking modes.
 - Replace the logging text box with a virtual text box.
     - Because the text in there might become long.
 - Get rid of the logging text box and replace it with a single status indicator
