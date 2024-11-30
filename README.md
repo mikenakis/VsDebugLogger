@@ -1,38 +1,36 @@
 ﻿# VsDebugLogger<br><sup><sub>Speeds up Visual Studio debug output by orders of magnitude.</sup></sub>
 
 <p align="center">
-<img title="VsDebgLogger logo" src="VsDebugLogger-logo.svg" width="256"/><br/>
+<img title="VsDebugLogger logo" src="VsDebugLogger-logo.svg" width="256"/><br/>
 </p>
 
 # The problem
 
-I am in favor of minimal logging; however, sometimes it happens that there is a lot of logging to be done. 
-When this is the case, it really helps if the logging does not impose a serious performance penalty 
-on the application that is doing the logging.
+I noticed that running the debug build of my C# application from within Visual Studio was significantly slower when debugging than when not debugging, and that the slow-down was present even after all DLLs had been resolved and all the symbols had been loaded. 
 
-I tried a little experiment. I compared the time it takes to emit a log line using two different methods:
-- **Debug-WriteLine** (`System.Diagnostics.Debug.WriteLine()`) 
-- **File-WriteLine** (`System.IO.StreamWriter.WriteLine()` on a `System.IO.FileStream` with `Flush()` after each line)
+I suspected that the logging might be the culprit, so I did a little experiment. I compared the time it takes to emit log lines using two different methods:
 
-To ensure the results were unbiased, I did the following:
-- I tried with bursts of 10, 100, 1000, or 10000 log lines, 
-to make sure the observations are consistent regardless of burst size, and indeed they were.
-- I followed each burst with a sleep of 100 milliseconds, 
-just in case something needed some time to cool down; it made no difference.
-- I tried either with or without the VSColorOutput plugin; 
-it made no difference either.
+- **File-WriteLine**
+  - Emitting log lines via `System.IO.StreamWriter.WriteLine()` on a `System.IO.FileStream`, followed by `Flush()` after each line.
+- **Debug-WriteLine**
+  - Emitting log lines via `System.Diagnostics.Debug.WriteLine()`.
 
 My observations were as follows:
 
-- **Debug-WriteLine** takes an absolutely terrifying 1.5 millisecond per line.
+- On average, **File-WriteLine** takes a reasonable 4.4 microseconds per line.
 
-- **File-WriteLine** takes a reasonable 4.4 microseconds per line.
+- On average, **Debug-WriteLine** takes an _**absolutely terrifying 1.5 milliseconds per line.**_.
 
-That's an astounding 350 times faster.
+To ensure that my findings were unbiased, I did the following:
+- I tried with bursts of 10, 100, 1000, or 10000 log lines, to make sure the observations are consistent regardless of burst size.
+- I followed each burst with a sleep of 100 milliseconds, just in case something needed some time to cool down.
+- I tried either with or without the VSColorOutput plugin, in case it somehow slows things down.
 
-I do not care what are the technical or managerial excuses behind this situation,
-but to me it clearly means that some folks at Microsoft are incompetent dimwits
-who should be milking goats instead of trying to develop world-class software.
+None of the above made any difference whatsoever: **Debug-WriteLine** is an astounding 350 times slower than **File-WriteLine**.
+
+I do not know what are the technical or managerial excuses behind this situation,
+and I do not care; to me, it clearly shows that some folks at Microsoft are incompetent dimwits
+who should be milking goats instead of pretending to develop world-class software.
 
 # The solution
 
@@ -41,20 +39,19 @@ and instead we do all of our logging into a text file.
 Then, we have an external process running which keeps reading text as it is being appended to the file
 and emits that text to the debug output window of Visual Studio. 
 
-This way, our application is completely desynchronized from Visual Studio 
-and it is only affected by the minimal performance overhead of writing to a log file.
-Visual Studio can take all the time it needs to render its output window on its own threads.
+This way, our application is completely desynchronized from Visual Studio. so the cost of logging a
+line is of the order of microseconds instead of milliseconds.
 
 # How it works
 
-Without VsDebugLogoger, our application typically sends its logging output both to a log file 
-and to the debug output stream.
-Visual Studio intercepts the debug output stream and renders it in its output window, 
-but as I have already explained, this is extremely slow.
+Without VsDebugLogger, our application typically sends its logging output both to a log file 
+and to the debug output stream. Visual Studio intercepts the debug output stream and renders it in its output window.
 
 <p align="center">
 <img title="VsDebgLogger Infographic 1" src="infographic1.svg" width="500" />
 </p>
+
+As I have already explained, this is extremely slow.
 
 With VsDebugLogger, our application sends its logging output only to a file.
 VsDebugLogger keeps polling this file, and sending text to the output window of Visual Studio.
@@ -65,65 +62,60 @@ VsDebugLogger keeps polling this file, and sending text to the output window of 
 
 The polling is done at a rate of 5 times per second, 
 which is frequent enough to be perceived as instantaneous, 
-and at the same time relaxed enough to have an inperceptible CPU consumption.
+and at the same time relaxed enough to have an imperceptible CPU consumption.
 
 # How to use
 
 First, reconfigure the way logging is done in your application 
-so that it only makes use of a log file. 
+so that it only writes to a log file. 
 In other words, your application should not be sending any log output to the debug output device anymore.
 (There should be no calls to `System.Diagnostics.Debug.WriteLine()`.)
 
-Then, add some code to the startup sequence of your application that does the following:
-1. Ensures that VsDebugLogger is running.
-    - This can be done simply by launching VsDebugLogger, since it takes care of the case where it is already running.
-1. Establishes a named pipe connection with VsDebugLogger.
-    - The named pipe is called `VsDebugLogger` and is on the local computer.
-1. Tells VsDebugLogger (via the named pipe) the name of your application's log file.
-    - So that VsDebugLogger knows which file to poll.
-1. Tells VsDebugLogger (via the named pipe) the name of your Visual Studio Solution.
-    - So that VsDebugLogger knows which running instance of Visual Studio to communicate with.
-1. Keeps the named pipe connection open for as long as your application is running.
-    - So that VsDebugLogger can find out when your application terminates by observing the pipe disconnection event.
-
-Here is a function that you can add to your application, which will do the above:
+Then, add the following function to your application:
 
 ```csharp
-private static object setup_debug_logging( string solution_name, //
+private static object? setup_debug_logging( string solution_name, //
 		string log_file_pathname, //
 		string path_to_vs_debug_logger )
 {
 #if DEBUG
+	// Ensure that VsDebugLogger is running.
 	System.Diagnostics.Process.Start( path_to_vs_debug_logger );
+
+	// Establish a named pipe connection with VsDebugLogger on the local computer.
 	var pipe = new System.IO.Pipes.NamedPipeClientStream( ".", "VsDebugLogger", //
 			System.IO.Pipes.PipeDirection.InOut, //
 			System.IO.Pipes.PipeOptions.None );
 	pipe.Connect( 2000 );
-	System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe );
-	writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );
-	writer.Flush();
+
+	// Tell VsDebugLogger what it needs to know in order to provide us with logging.
+	using( System.IO.StreamWriter writer = new System.IO.StreamWriter( pipe, leaveOpen: true ) )
+		writer.WriteLine( $"LogFile solution={solution_name} file={log_file_pathname}" );
+
+	// Return the pipe, to be kept open for as long as the application runs. 
 	return pipe;
 #else
 	return null;
 #endif
 }
 ```
-Invoke the above function as early as possible during application startup, passing it the following:
 
-- The name of your solution
+Invoke the above function as early as possible during the startup of your application, passing it the following:
+
+- The name of your solution.
 - The full path name to the log file of your application.
 - The full path name to VsDebugLogger.exe on your computer.
 
 **Important:** Store the result in a member variable of your application
 so that it will stay alive until your application process ends.
 
-That's it, really. 
-From that moment on, you will enjoy much faster logging to the debug output window of Visual Studio.
+That's it. 
+From that moment on, you will enjoy much faster logging in Visual Studio.
 
 # Caveats
 
 - Visual Studio is in the habit of emitting some diagnostic information (e.g. process termination messages)
-directly to the debug output stream, thus bypassing VsDebugLogger. 
+directly to the debug output stream, bypassing your logging facility, and therefore bypassing VsDebugLogger. 
 As a result, these messages will appear out of order with respect to the log lines that go via VsDebugLogger.
 For example, if you instruct your application to shut-down,
 you may see in the Debug Output Window some cleanup-related log lines, 
@@ -160,7 +152,8 @@ If you do decide to contribute, please contact me first to arrange the specifics
 
 # TO DO list
 
-- The logging output has been observed to get garbled in some rare cases, possibly as a result of multiple threads trying to log simultaneously; need to troubleshoot.
+- The logging output has been observed to get garbled in some rare cases. However, this is probably happening as the application is emitting log lines to be written to the log file, and is not VsDebugLogger's fault. In any case, keep an eye out for this.
+- When two instances of visual studio are open, both having a solution open with the same name, (but in different directories,) the debug output arrives in only one of them. Need to somehow differentiate based on the directory of the solution.
 - Handle spaces in names.
     - Currently, if the solution name or the log pathname contain any spaces, bad things will happen.
 - Add persisting and restoring of the window geometry across runs
@@ -173,8 +166,8 @@ If you do decide to contribute, please contact me first to arrange the specifics
     - Discover the name of the solution so that the client app does not have to have the solution name hard-coded in it.
 	- Keep track of disconnections from VsDebugLogger and keep attempting to reconnect.
 	- Possibly make a copy of VsDebugLogger before launching it, so that VsDebugLogger can be rebuilt while running. When VsDebugLogger starts
-	  and discovers that another instance of it is already running, it should negotiate with the other instace so as to ensure that the one that
-	  stays running is the newer one, while the one hat terminates is the older one.
+	  and discovers that another instance of it is already running, it should negotiate with the other instance so as to ensure that the one that
+	  stays running is the newer one, while the one that terminates is the older one.
 - Take look at Beckhoff's "Implementing a COM Message Filter" just in case it contains something useful: https://infosys.beckhoff.com/english.php?content=../content/1033/tc3_automationinterface/242727947.html&id=
 - Take a look at 'dte.SuppressUI = true;' and 'dte.MainWindow.Visible = false;' as a potential means of preventing Visual Studio from going into blocking modes.
 - Replace the logging text box with a virtual text box.
