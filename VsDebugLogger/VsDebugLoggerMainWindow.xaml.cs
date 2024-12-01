@@ -1,13 +1,13 @@
 ﻿namespace VsDebugLogger;
 
 using SysThread = System.Threading;
-using Framework;
-using Framework.Logging;
 using Sys = System;
 using Wpf = System.Windows;
 using WinForms = System.Windows.Forms;
 using WinFormsDrawing = System.Drawing;
 using SysCompModel = System.ComponentModel;
+using VsDebugLoggerKit.Logging;
+using VsDebugLoggerKit;
 
 //PEARL: Windows Tray Icons are a very sorry affair nowadays.
 //       Every new release of Windows seems to:

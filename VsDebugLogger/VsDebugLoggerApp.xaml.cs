@@ -8,11 +8,11 @@ using SysGlob = global::System.Globalization;
 using Wpf = System.Windows;
 using WpfThread = System.Windows.Threading;
 using global::System.Collections.Generic;
-using static global::Framework.Statics;
-using Log = global::Framework.Logging.Log;
-using Framework.Extensions;
-using Framework;
-using Framework.FileSystem;
+using static global::VsDebugLoggerKit.Statics;
+using Log = global::VsDebugLoggerKit.Logging.Log;
+using VsDebugLoggerKit.Extensions;
+using VsDebugLoggerKit.FileSystem;
+using VsDebugLoggerKit;
 
 public partial class VsDebugLoggerApp //: Wpf.Application
 {

@@ -57,11 +57,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Framework\Framework.csproj" />
+		<ProjectReference Include="..\VsDebugLoggerKit\VsDebugLoggerKit.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Include="..\Framework\_GlobalUsings.cs" Link="_GlobalUsings.cs" />
+		<Compile Include="..\VsDebugLoggerKit\_GlobalUsings.cs" Link="_GlobalUsings.cs" />
 	</ItemGroup>
 
 	<ItemGroup>

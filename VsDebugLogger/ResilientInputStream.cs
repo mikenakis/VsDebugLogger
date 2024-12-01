@@ -3,10 +3,10 @@
 using Sys = global::System;
 using SysIo = global::System.IO;
 using SysText = global::System.Text;
-using static global::Framework.Statics;
-using Log = global::Framework.Logging.Log;
-using Framework;
-using Framework.FileSystem;
+using static global::VsDebugLoggerKit.Statics;
+using Log = global::VsDebugLoggerKit.Logging.Log;
+using VsDebugLoggerKit.FileSystem;
+using VsDebugLoggerKit;
 
 internal class ResilientInputStream
 {
