@@ -2,13 +2,13 @@
 
 namespace VsDebugLoggerKit.FileSystem;
 
+using System.Collections.Generic;
+using static VsDebugLoggerKit.Statics;
+using Log = Log;
 using Sys = System;
 using SysIo = System.IO;
 using SysText = System.Text;
 using SysThread = System.Threading;
-using System.Collections.Generic;
-using static VsDebugLoggerKit.Statics;
-using Log = Log;
 
 public sealed class FilePath : FileSystemPath
 {

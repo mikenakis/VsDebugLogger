@@ -1,14 +1,14 @@
 ﻿namespace VsDebugLogger;
 
-using Sys = global::System;
-using SysIo = global::System.IO;
-using SysTasks = global::System.Threading.Tasks;
 using global::System.Collections.Generic;
 using global::System.Linq;
+using VsDebugLoggerKit;
 using static global::VsDebugLoggerKit.Statics;
 using Log = global::VsDebugLoggerKit.Logging.Log;
+using Sys = global::System;
+using SysIo = global::System.IO;
 using SysIoPipes = System.IO.Pipes;
-using VsDebugLoggerKit;
+using SysTasks = global::System.Threading.Tasks;
 
 internal sealed class NamedPipeServer : Sys.IDisposable
 {
@@ -61,7 +61,7 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 	{
 		try
 		{
-			for( ;; )
+			while( true )
 			{
 				SysIoPipes.NamedPipeServerStream namedPipeServer = new SysIoPipes.NamedPipeServerStream( pipeName, SysIoPipes.PipeDirection.InOut, MaxInstanceCount );
 				Log.Debug( $"instance {instanceNumber} NamedPipeServer waiting for a session..." );
@@ -89,7 +89,7 @@ internal sealed class NamedPipeServer : Sys.IDisposable
 						List<string> parameters = parts.Skip( 1 ).ToList();
 						await using( Session session = sessionFactory.Invoke( verb, parameters ) )
 						{
-							for( ;; )
+							while( true )
 							{
 								string? line = await reader.ReadLineAsync();
 								if( line == null )

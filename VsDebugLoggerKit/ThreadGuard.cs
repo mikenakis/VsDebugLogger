@@ -2,9 +2,9 @@
 
 namespace Framework;
 
+using static Statics;
 using Sys = System;
 using SysThread = System.Threading;
-using static Statics;
 
 public abstract class ThreadGuard
 {

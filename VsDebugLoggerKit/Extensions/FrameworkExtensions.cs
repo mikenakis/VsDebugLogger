@@ -1,9 +1,9 @@
 ﻿namespace VsDebugLoggerKit.Extensions;
 
-using SysText = System.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using static VsDebugLoggerKit.Statics;
+using SysText = System.Text;
 
 
 public static class FrameworkExtensions

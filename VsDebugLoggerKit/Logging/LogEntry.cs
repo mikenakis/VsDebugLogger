@@ -1,7 +1,7 @@
 ﻿namespace VsDebugLoggerKit.Logging;
 
-using Sys = System;
 using System.Collections.Generic;
+using Sys = System;
 
 public class LogEntry
 {

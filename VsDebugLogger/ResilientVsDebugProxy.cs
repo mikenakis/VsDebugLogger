@@ -1,15 +1,15 @@
 ﻿namespace VsDebugLogger;
 
-using SysInterop = global::System.Runtime.InteropServices;
+using System;
 using global::System.Collections.Generic;
 using global::System.Linq;
+using VsDebugLoggerKit.FileSystem;
 using static global::VsDebugLoggerKit.Statics;
 using Log = global::VsDebugLoggerKit.Logging.Log;
-using System;
-using VsInterop = Microsoft.VisualStudio.OLE.Interop;
-using VsAutomation80 = EnvDTE80;
+using SysInterop = global::System.Runtime.InteropServices;
 using VsAutomation = EnvDTE;
-using VsDebugLoggerKit.FileSystem;
+using VsAutomation80 = EnvDTE80;
+using VsInterop = Microsoft.VisualStudio.OLE.Interop;
 
 // Portions from https://www.codeproject.com/Articles/5747/Reading-Command-line-build-logs-into-the-Visual-St converted using https://converter.telerik.com/
 // Portions from Stack Overflow: "How do I get the DTE for running Visual Studio instance?" https://stackoverflow.com/a/14205934/773113

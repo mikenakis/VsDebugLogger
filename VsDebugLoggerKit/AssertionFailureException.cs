@@ -1,7 +1,7 @@
 ﻿namespace VsDebugLoggerKit;
 
-using Sys = System;
 using static Statics;
+using Sys = System;
 
 /// An exception to throw when an assertion fails.
 public class AssertionFailureException : Sys.Exception

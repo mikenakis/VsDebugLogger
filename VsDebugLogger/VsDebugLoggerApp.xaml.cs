@@ -1,18 +1,18 @@
 ﻿namespace VsDebugLogger;
 
+using global::System.Collections.Generic;
+using VsDebugLoggerKit;
+using VsDebugLoggerKit.Extensions;
+using VsDebugLoggerKit.FileSystem;
+using static global::VsDebugLoggerKit.Statics;
+using Log = global::VsDebugLoggerKit.Logging.Log;
 using Sys = global::System;
+using SysGlob = global::System.Globalization;
 using SysIo = global::System.IO;
 using SysIoPipes = global::System.IO.Pipes;
 using SysTasks = global::System.Threading.Tasks;
-using SysGlob = global::System.Globalization;
 using Wpf = System.Windows;
 using WpfThread = System.Windows.Threading;
-using global::System.Collections.Generic;
-using static global::VsDebugLoggerKit.Statics;
-using Log = global::VsDebugLoggerKit.Logging.Log;
-using VsDebugLoggerKit.Extensions;
-using VsDebugLoggerKit.FileSystem;
-using VsDebugLoggerKit;
 
 public partial class VsDebugLoggerApp //: Wpf.Application
 {
@@ -117,11 +117,11 @@ public class TheApp : Sys.IDisposable
 	private NamedPipeServer.Session new_session_handler( string verb, List<string> parameters )
 	{
 		return verb switch
-			{
-				"Activate" => new ActivationSession( this, parameters ),
-				"LogFile" => LogFileSession.Create( this, parameters ),
-				_ => throw new Sys.ApplicationException( $"Unknown verb: {verb}" )
-			};
+		{
+			"Activate" => new ActivationSession( this, parameters ),
+			"LogFile" => LogFileSession.Create( this, parameters ),
+			_ => throw new Sys.ApplicationException( $"Unknown verb: {verb}" )
+		};
 	}
 
 	private void on_timer_tick( object? sender, Sys.EventArgs e )

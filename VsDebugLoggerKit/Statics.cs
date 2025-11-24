@@ -1,12 +1,12 @@
 ﻿namespace VsDebugLoggerKit;
 
-using Sys = System;
-using SysThread = System.Threading;
-using SysDiag = System.Diagnostics;
-using SysCompiler = System.Runtime.CompilerServices;
-using SysCodeAnalysis = System.Diagnostics.CodeAnalysis;
-using Math = System.Math;
 using Log = Logging.Log;
+using Math = System.Math;
+using Sys = System;
+using SysCodeAnalysis = System.Diagnostics.CodeAnalysis;
+using SysCompiler = System.Runtime.CompilerServices;
+using SysDiag = System.Diagnostics;
+using SysThread = System.Threading;
 
 public static class Statics
 {
@@ -29,7 +29,7 @@ public static class Statics
 #if DEBUG
 			return true;
 #else
-			return false;
+            return false;
 #endif
 		}
 	}

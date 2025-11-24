@@ -1,15 +1,15 @@
 ﻿namespace VsDebugLoggerKit;
 
-using Sys = System;
-using SysDiag = System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
-using static VsDebugLoggerKit.Statics;
-using Log = Logging.Log;
 using System.Reflection;
 using System.Threading;
-using SysComp = System.Runtime.CompilerServices;
 using VsDebugLoggerKit.Logging;
+using static VsDebugLoggerKit.Statics;
+using Log = Logging.Log;
+using Sys = System;
+using SysComp = System.Runtime.CompilerServices;
+using SysDiag = System.Diagnostics;
 
 // NOTE: a better name for this class would be "ObjectLifeTimeGuard", but that would be too damn long, hence, "LifeGuard".
 public abstract class LifeGuard : Sys.IDisposable

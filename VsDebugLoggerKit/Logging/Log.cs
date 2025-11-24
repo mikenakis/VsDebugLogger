@@ -1,14 +1,14 @@
 ﻿namespace VsDebugLoggerKit.Logging;
 
-using Sys = System;
-using SysText = System.Text;
-using SysDiag = System.Diagnostics;
-using SysCompiler = System.Runtime.CompilerServices;
-using SysReflect = System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
-using static VsDebugLoggerKit.Statics;
 using VsDebugLoggerKit.Extensions;
+using static VsDebugLoggerKit.Statics;
+using Sys = System;
+using SysCompiler = System.Runtime.CompilerServices;
+using SysDiag = System.Diagnostics;
+using SysReflect = System.Reflection;
+using SysText = System.Text;
 
 public static class Log
 {

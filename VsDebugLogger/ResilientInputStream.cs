@@ -1,12 +1,12 @@
 ﻿namespace VsDebugLogger;
 
+using VsDebugLoggerKit;
+using VsDebugLoggerKit.FileSystem;
+using static global::VsDebugLoggerKit.Statics;
+using Log = global::VsDebugLoggerKit.Logging.Log;
 using Sys = global::System;
 using SysIo = global::System.IO;
 using SysText = global::System.Text;
-using static global::VsDebugLoggerKit.Statics;
-using Log = global::VsDebugLoggerKit.Logging.Log;
-using VsDebugLoggerKit.FileSystem;
-using VsDebugLoggerKit;
 
 internal class ResilientInputStream
 {
@@ -39,7 +39,11 @@ internal class ResilientInputStream
 		if( fileStreamLength < offset )
 		{
 			Log.Info( "File has shrunk, starting from the beginning." );
+			Assert( fileStream != null );
+			fileStream.Close();
+			fileStream = null;
 			offset = 0;
+			return false;
 		}
 
 		long length = fileStreamLength - offset;

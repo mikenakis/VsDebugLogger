@@ -1,8 +1,8 @@
 ﻿namespace VsDebugLoggerKit.Logging;
 
+using System.Collections.Generic;
 using SysText = System.Text;
 using SysThread = System.Threading;
-using System.Collections.Generic;
 
 public class FormattingLogger
 {

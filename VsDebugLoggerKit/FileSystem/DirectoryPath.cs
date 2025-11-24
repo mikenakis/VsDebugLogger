@@ -1,11 +1,11 @@
 ﻿namespace VsDebugLoggerKit.FileSystem;
 
-using Sys = System;
-using SysIo = System.IO;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using static VsDebugLoggerKit.Statics;
+using Sys = System;
+using SysIo = System.IO;
 
 public sealed class DirectoryPath : FileSystemPath
 {

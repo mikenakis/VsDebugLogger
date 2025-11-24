@@ -1,22 +1,22 @@
 ﻿namespace VsDebugLoggerKit;
 
-using Sys = System;
-using SysIo = System.IO;
-using SysGlob = System.Globalization;
-using SysText = System.Text;
-using SysDiag = System.Diagnostics;
-using Legacy = System.Collections;
-using SysReflect = System.Reflection;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Math = System.Math;
-using static VsDebugLoggerKit.Statics;
-using Log = Logging.Log;
-using SysNet = System.Net;
-using SysComp = System.Runtime.CompilerServices;
 using VsDebugLoggerKit.Extensions;
 using VsDebugLoggerKit.FileSystem;
+using static VsDebugLoggerKit.Statics;
+using Legacy = System.Collections;
+using Log = Logging.Log;
+using Math = System.Math;
+using Sys = System;
+using SysComp = System.Runtime.CompilerServices;
+using SysDiag = System.Diagnostics;
+using SysGlob = System.Globalization;
+using SysIo = System.IO;
+using SysNet = System.Net;
+using SysReflect = System.Reflection;
+using SysText = System.Text;
 
 public static class DotNetHelpers
 {

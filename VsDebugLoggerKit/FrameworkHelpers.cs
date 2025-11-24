@@ -1,12 +1,12 @@
 ﻿namespace VsDebugLoggerKit;
 
+using System.Collections.Generic;
 using System.Linq;
+using VsDebugLoggerKit.Extensions;
 using static Statics;
 using Sys = System;
 using SysGlob = System.Globalization;
 using SysText = System.Text;
-using System.Collections.Generic;
-using VsDebugLoggerKit.Extensions;
 
 public static class FrameworkHelpers
 {

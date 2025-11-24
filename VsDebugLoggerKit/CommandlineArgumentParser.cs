@@ -1,10 +1,10 @@
 ﻿namespace VsDebugLoggerKit;
 
-using Sys = System;
 using System.Collections.Generic;
 using System.Linq;
 using VsDebugLoggerKit.Extensions;
 using VsDebugLoggerKit.FileSystem;
+using Sys = System;
 
 public class CommandlineArgumentParser
 {

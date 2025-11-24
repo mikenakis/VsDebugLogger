@@ -1,11 +1,11 @@
 ﻿namespace VsDebugLoggerKit.Logging;
 
+using System.Collections.Generic;
+using VsDebugLoggerKit;
+using VsDebugLoggerKit.Extensions;
+using static VsDebugLoggerKit.Statics;
 using Sys = System;
 using SysDiag = System.Diagnostics;
-using System.Collections.Generic;
-using static VsDebugLoggerKit.Statics;
-using VsDebugLoggerKit.Extensions;
-using VsDebugLoggerKit;
 
 public sealed class DistributingLogger
 {

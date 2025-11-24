@@ -1,9 +1,9 @@
 ﻿namespace VsDebugLoggerKit;
 
+using static Statics;
 using Sys = System;
 using SysComp = System.Runtime.CompilerServices;
 using SysDiag = System.Diagnostics;
-using static Statics;
 
 public class StatefulLifeGuard : Sys.IDisposable
 {

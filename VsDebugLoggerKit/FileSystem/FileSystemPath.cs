@@ -2,11 +2,11 @@
 
 namespace VsDebugLoggerKit.FileSystem;
 
+using static VsDebugLoggerKit.Statics;
+using Log = Log;
 using Sys = System;
 using SysIo = System.IO;
 using SysTasks = System.Threading.Tasks;
-using static VsDebugLoggerKit.Statics;
-using Log = Log;
 
 ///<summary>Common base class for <see cref="FilePath"/> and <see cref="DirectoryPath"/>.</summary>
 public abstract class FileSystemPath
