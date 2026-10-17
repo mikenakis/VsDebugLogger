@@ -1,0 +1,4 @@
+# common files copied from the MikeNakis.CommonFiles project.
+
+.editorconfig
+get_common_files.bash
