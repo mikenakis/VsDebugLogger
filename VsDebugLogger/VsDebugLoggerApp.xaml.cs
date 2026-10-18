@@ -120,6 +120,7 @@ public class TheApp : Sys.IDisposable
 		{
 			"Activate" => new ActivationSession( this, parameters ),
 			"LogFile" => LogFileSession.Create( this, parameters ),
+			"Quit" => new QuitSession( this, parameters ),
 			_ => throw new Sys.ApplicationException( $"Unknown verb: {verb}" )
 		};
 	}
@@ -192,6 +193,30 @@ public class TheApp : Sys.IDisposable
 			if( parameters.Count != 0 )
 				Log.Debug( $"Unexpected parameters received: {parameters.MakeString( " " )}" );
 			Wpf.Application.Current.MainWindow!.Activate();
+		}
+
+		public override void LineReceived( string line )
+		{
+			Log.Debug( $"Unexpected line received: {line}" );
+		}
+
+		public override void Tick()
+		{
+			Log.Debug( "Unexpected tick received." );
+		}
+	}
+
+	// Used by the post-build step to make a running instance exit, so that its files can be overwritten.
+	internal sealed class QuitSession : MySession
+	{
+		public QuitSession( TheApp theApp, List<string> parameters )
+				: base( theApp )
+		{
+			if( parameters.Count != 0 )
+				Log.Debug( $"Unexpected parameters received: {parameters.MakeString( " " )}" );
+			Log.Info( "Quit requested." );
+			// Shut down after the current session has been dealt with, not in the middle of it.
+			Wpf.Application.Current.Dispatcher.BeginInvoke( () => Wpf.Application.Current.Shutdown() );
 		}
 
 		public override void LineReceived( string line )
