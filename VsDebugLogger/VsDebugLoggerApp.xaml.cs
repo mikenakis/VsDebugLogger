@@ -1,4 +1,4 @@
-﻿namespace VsDebugLogger;
+namespace VsDebugLogger;
 
 using global::System.Collections.Generic;
 using VsDebugLoggerKit;
@@ -206,7 +206,6 @@ public class TheApp : Sys.IDisposable
 		}
 	}
 
-	// Used by the post-build step to make a running instance exit, so that its files can be overwritten.
 	internal sealed class QuitSession : MySession
 	{
 		public QuitSession( TheApp theApp, List<string> parameters )
