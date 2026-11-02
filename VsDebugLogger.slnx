@@ -8,7 +8,6 @@
     <File Path="infographic1.svg" />
     <File Path="infographic2.svg" />
     <File Path="README.md" />
-    <File Path="VsDebugLogger-logo.svg" />
   </Folder>
   <Project Path="VsDebugLogger/VsDebugLogger.csproj" />
   <Project Path="VsDebugLoggerKit/VsDebugLoggerKit.csproj" />

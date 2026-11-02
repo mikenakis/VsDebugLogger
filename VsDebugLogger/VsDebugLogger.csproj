@@ -11,7 +11,6 @@
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 		<NoWarn>1701;1702</NoWarn>
 		<NoWarn>CS0809</NoWarn>
-		<ApplicationIcon>VsDebugLogger.ico</ApplicationIcon>
 		<RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
 		<EnableNETAnalyzers>False</EnableNETAnalyzers>
 	</PropertyGroup>
@@ -64,15 +63,27 @@
 		<Compile Include="..\VsDebugLoggerKit\_GlobalUsings.cs" Link="_GlobalUsings.cs" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Resource Include="VsDebugLogger.ico">
-	    <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-	  </Resource>
-	</ItemGroup>
+	<!-- [Claude] The application icon is generated from `VsDebugLogger-icon.svg`, using MikeNakis.SvgConvert, into the intermediate output directory.
+	     [Claude] The tray icon is loaded from the same ICO as an embedded resource, so the ICO is embedded under the name that `VsDebugLoggerMainWindow` looks up. -->
+	<PropertyGroup>
+		<IconSvgPath>$(MSBuildProjectDirectory)\$(MSBuildProjectName)-icon.svg</IconSvgPath>
+		<ApplicationIcon>$(BaseIntermediateOutputPath)$(MSBuildProjectName).ico</ApplicationIcon>
+	</PropertyGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="VsDebugLogger.ico" />
+		<EmbeddedResource Include="$(ApplicationIcon)" LogicalName="VsDebugLogger.VsDebugLogger.ico" />
 	</ItemGroup>
+
+	<!-- [Claude] Visual Studio skips building a project that it considers up to date, so the SVG is declared as an input of the project; otherwise, a changed SVG would not regenerate the icon. -->
+	<ItemGroup>
+		<UpToDateCheckInput Include="$(IconSvgPath)" />
+	</ItemGroup>
+
+	<!-- [Claude] MikeNakis.SvgConvert is a .NET tool, listed in `.config/dotnet-tools.json` at the root of the repository, so it is restored before use; restoring takes no time when the tool is already there. -->
+	<Target Name="ApplicationIconTarget" BeforeTargets="BeforeBuild" Inputs="$(IconSvgPath)" Outputs="$(ApplicationIcon)">
+		<Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool restore" StandardOutputImportance="Low" />
+		<Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="dotnet tool run MikeNakis.SvgConvert windows-ico &quot;$(IconSvgPath)&quot; &quot;$(ApplicationIcon)&quot;" />
+	</Target>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
 	  <Exec Command="cmd /c $(ProjectDir)post-build-step.bat $(ProjectName) $(TargetDir)" />

@@ -1,7 +1,7 @@
 ﻿# VsDebugLogger<br><sup><sub>Speeds up Visual Studio debug output by orders of magnitude.</sup></sub>
 
 <p align="center">
-<img title="VsDebugLogger logo" src="VsDebugLogger-logo.svg" width="256"/><br/>
+<img title="VsDebugLogger logo" src="VsDebugLogger/VsDebugLogger-icon.svg" width="256"/><br/>
 </p>
 
 # The problem

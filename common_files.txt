@@ -2,3 +2,4 @@
 
 .editorconfig
 get_common_files.bash
+dotnet-tools.json .config/dotnet-tools.json
